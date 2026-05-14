@@ -1,0 +1,92 @@
+version: 1
+deployment: memex-sr
+
+defaults:
+  user_agent: "memex-sr-source-sampler/0.1 (mailto:pkarimib@mit.edu)"
+  timeout_seconds: 20
+  concurrency: 1
+  min_delay_seconds: 2
+  retries: 0
+  honor_retry_after: true
+  cache_first: true
+  live_network_in_publish: false
+  pdf_download_in_sampler: false
+
+hosts:
+  dblp.org:
+    purpose: "metadata enumeration"
+    allowed: true
+    min_delay_seconds: 3
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: html_or_xml_toc_only
+    notes: "Local shell probes timed out/reset on 2026-05-14; use small samples or a DBLP dump/mirror before production."
+  www.usenix.org:
+    purpose: "venue technical-session pages and open PDFs"
+    allowed: true
+    min_delay_seconds: 3
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: html_metadata_only
+    acquisition_scope: explicit_venue_year_pages
+  api.openalex.org:
+    purpose: "metadata enrichment and identifier hints"
+    allowed: true
+    min_delay_seconds: 1
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: small_search_or_known_identifier
+  api.crossref.org:
+    purpose: "DOI and publication metadata enrichment"
+    allowed: true
+    min_delay_seconds: 1
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: small_query_or_known_doi
+    notes: "Broad title queries are noisy; production enrichment should be DOI-bound or target-set-bound."
+  api.semanticscholar.org:
+    purpose: "citation, reference, and abstract enrichment"
+    allowed: true
+    min_delay_seconds: 3
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: small_search
+    notes: "Unauthenticated search may return 429; production use should support API keys and DLQ."
+  api2.openreview.net:
+    purpose: "OpenReview-hosted venue metadata and PDF hints"
+    allowed: true
+    min_delay_seconds: 2
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: venue_note_query
+  export.arxiv.org:
+    purpose: "preprint metadata and PDF/source hints"
+    allowed: true
+    min_delay_seconds: 3
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: small_query_or_known_id
+  www.rfc-editor.org:
+    purpose: "open standards and protocol documents"
+    allowed: true
+    min_delay_seconds: 2
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: text_metadata_only
+  www.vldb.org:
+    purpose: "PVLDB volume pages and open paper metadata"
+    allowed: true
+    min_delay_seconds: 3
+    concurrency: 1
+    allowed_methods: [GET]
+    sampler_scope: volume_metadata_only
+  dl.acm.org:
+    purpose: "publisher landing pages and PDFs"
+    allowed: false
+    sampler_scope: none
+    notes: "Do not scrape ACM DL without an approved acquisition policy and access basis."
+  ieeexplore.ieee.org:
+    purpose: "publisher landing pages and PDFs"
+    allowed: false
+    sampler_scope: none
+    notes: "Do not scrape IEEE Xplore without an approved acquisition policy and access basis."

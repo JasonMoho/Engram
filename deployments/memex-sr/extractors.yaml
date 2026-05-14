@@ -1,0 +1,22 @@
+parser:
+  - format: markdown
+    class: okg.substrate.library.extraction.parse.markdown.MarkdownParser
+  - format: text
+    class: okg.substrate.library.extraction.parse.text.TextParser
+
+chunker:
+  - format: markdown
+    class: okg.substrate.library.extraction.chunk.markdown_heading.MarkdownHeadingChunker
+    config: {min_tokens: 40, max_tokens: 1200}
+  - format: default
+    class: okg.substrate.library.extraction.chunk.window.WindowChunker
+    config: {max_chars: 3000, overlap: 250}
+
+ner:
+  - class: okg.substrate.library.extraction.ner.regex_backend.RegexEntityExtractor
+    config:
+      rules:
+        - [arxiv_id, "\\b[0-9]{4}\\.[0-9]{4,5}(?:v[0-9]+)?\\b"]
+        - [doi, "\\b10\\.[0-9]{4,9}/[-._;()/:A-Z0-9a-z]+\\b"]
+        - [venue, "\\b(?:SOSP|OSDI|NSDI|SIGCOMM|HotNets|EuroSys|CoNEXT|SIGMOD|VLDB|CIDR|PODS|MLSys)\\b"]
+        - [okg_node_id, "\\b(?:doc|chunk|file|branch):[A-Za-z0-9._:/-]+\\b"]

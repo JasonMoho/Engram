@@ -1,0 +1,95 @@
+sources:
+
+  paper-cut:
+    module: sources.paper_cut
+    class: PaperCutSource
+    ownership_id: memex-sr.paper-cut
+    params:
+      manifest_path: ${repo_root}/deployments/memex-sr/manifests/paper_cut.json
+
+    source_class: reference_catalog
+    record_identity_kind: domain_key
+    record_identity_fields: [manifest_path]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    sync:
+      watch:
+        roots: ["${repo_root}/deployments/memex-sr/manifests"]
+        include_globs:
+          - deployments/memex-sr/manifests/paper_cut.json
+      triggers: [manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 3600
+
+  doc-corpus:
+    module: okg.substrate.library.sources.doc_corpus
+    class: DocCorpusSource
+    ownership_id: memex-sr.doc-corpus
+    params:
+      repo: engram
+      repo_root: ${repo_root}
+      extractors_dir: ${manifest_dir}
+      include_globs:
+        - deployments/memex-sr/spec/proposal.md
+        - deployments/memex-sr/spec/design.md
+        - deployments/memex-sr/spec/memex-sr-deployment.md
+        - deployments/memex-sr/seed_corpus/*.md
+        - docs/okg-memex-sr.md
+        - docs/okg-context-packet.md
+      exclude_globs:
+        - "**/.git/**"
+        - "**/.venv/**"
+        - "**/node_modules/**"
+        - "**/__pycache__/**"
+        - "external/okg/.venv/**"
+      max_files: 100
+      max_bytes_per_file: 1000000
+
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [repo, path]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    sync:
+      watch:
+        roots: ["${repo_root}"]
+        include_globs:
+          - deployments/memex-sr/spec/proposal.md
+          - deployments/memex-sr/spec/design.md
+          - deployments/memex-sr/spec/memex-sr-deployment.md
+          - deployments/memex-sr/seed_corpus/*.md
+          - docs/okg-memex-sr.md
+          - docs/okg-context-packet.md
+        exclude_globs:
+          - "**/.git/**"
+          - "**/.venv/**"
+          - "**/node_modules/**"
+          - "**/__pycache__/**"
+          - "external/okg/.venv/**"
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60

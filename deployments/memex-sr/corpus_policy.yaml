@@ -1,0 +1,69 @@
+version: 1
+deployment: memex-sr
+
+principles:
+  - "Start with exact venue/year enumeration, not broad paper search."
+  - "Treat metadata, acquisition, parsing, chunking, evidence, and distillation as separate durable stages."
+  - "Publish generations only from local manifests or deterministic source records."
+  - "Keep network acquisition outside generation publish and behind host policy."
+  - "Record skipped, blocked, denied, and rate-limited outcomes as coverage data."
+  - "Add corpus expansion by source pack, fixture, and coverage report rather than by ad hoc source code."
+
+identity_rules:
+  canonical_paper_id:
+    priority: [doi, dblp_key, openalex_id, semantic_scholar_id, arxiv_id, venue_scoped_title_hash]
+    title_hash_scope: [venue_id, year, normalized_title]
+    duplicate_policy: merge_aliases_require_same_venue_year_or_identifier
+  document_asset_id:
+    format: "asset:<source_pack>:<paper_or_manifest_id>:<content_hash>"
+    note: "Assets are distinct from documents so one paper can have a publisher PDF, arXiv PDF, HTML page, or operator-supplied copy."
+  document_chunk_id:
+    format: "chunk:<document_id>:<chunker_version>:<ordinal>:<content_hash>"
+    note: "Parent-scoped chunk ids prevent boilerplate text from collapsing across papers."
+
+incremental_rules:
+  metadata_records:
+    checkpoint: provider_record_fingerprint
+    no_op_expectation: unchanged provider records emit zero new facts
+    scoped_keys: [venue_id, year, provider, provider_record_id]
+  assets:
+    checkpoint: content_hash
+    no_op_expectation: unchanged assets are not re-downloaded or reparsed
+    scoped_keys: [manifest_path, asset_id, content_hash]
+  parser_outputs:
+    checkpoint: "content_hash + parser_version + chunker_version"
+    invalidation: parser_or_chunker_version_change
+    scoped_keys: [asset_id, parser_version, chunker_version]
+  distillation_outputs:
+    checkpoint: evidence_watermark
+    invalidation: evidence_slice_or_prompt_version_change
+    scoped_keys: [topic_slug, evidence_watermark, distillation_version]
+
+ontology_coverage_targets:
+  corpus_governance:
+    nodes: [CorpusPack, CorpusCoverageSnapshot]
+    expected_sources: [corpus_packs.yaml, source_samples]
+  literature_identity:
+    nodes: [Paper, Person, Venue, VenueEdition, PublicationSeries, Organization]
+    expected_sources: [dblp, usenix, pvldb, openalex, crossref, semantic_scholar, openreview]
+  research_artifacts:
+    nodes: [Dataset, Software, Benchmark]
+    expected_sources: [openalex, semantic_scholar, paper_full_text, curated_manifest]
+  document_assets:
+    nodes: [DocumentAsset, Document, DocumentSection, DocumentChunk]
+    expected_sources: [usenix, pvldb, openreview, arxiv, rfc_editor, local_directory, curated_manifest]
+  evidence_distillation:
+    nodes: [EvidenceSlice, Claim, ResearchProblem, DistillationSection]
+    expected_sources: [paper_full_text, web_document_source, distillation_jobs]
+  engram_workspace:
+    nodes: [ResearchRun, AgentAttempt, Experiment, CandidateImplementation, MetricObservation, FailureDiagnosis, ResearchNote, WorkspaceArtifact]
+    expected_sources: [engram_workspace_archive]
+
+download_governance:
+  default_network: mit_server
+  allow_live_network_in_publish: false
+  require_contactful_user_agent: true
+  require_cache_first: true
+  require_retry_after_honor: true
+  require_per_host_rate_limit: true
+  require_manifest_terminal_state: true

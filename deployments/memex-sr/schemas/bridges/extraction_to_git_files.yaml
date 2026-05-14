@@ -1,0 +1,29 @@
+id: https://palimpzest.mit.edu/okg/deployments/memex_sr/bridges/extraction_to_git_files
+name: memex_sr_extraction_bridge
+title: "Bridge - extraction to git files"
+description: >-
+  Cross-module narrowing for DocCorpusSource provenance edges from
+  parsed documents to the Engram source files they came from.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  okg: https://palimpzest.mit.edu/okg/
+  memex_sr: https://palimpzest.mit.edu/okg/deployments/memex_sr/
+
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  EdgeNarrowings:
+    description: Cross-module bridges for phase-0 document extraction.
+    annotations:
+      okg_edge_narrowings: "true"
+    attributes:
+      document_derived_from_source_file:
+        description: A parsed Document derives from its filesystem SourceFile.
+        annotations:
+          edge_archetype: derived_from
+          src_subtypes: Document
+          dst_subtypes: SourceFile

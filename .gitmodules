@@ -5,3 +5,7 @@
 [submodule "SystemBench/FrontierCS/frontier_cs_repo"]
 	path = SystemBench/FrontierCS/frontier_cs_repo
 	url = https://github.com/FrontierCS/Frontier-CS.git
+[submodule "external/okg"]
+	path = external/okg
+	url = https://github.com/mitdbg/okg.git
+	branch = dev

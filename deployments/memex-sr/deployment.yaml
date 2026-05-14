@@ -1,0 +1,33 @@
+name: memex-sr
+description: Engram-owned Memex-SR OKG deployment for autonomous systems research.
+
+postgres:
+  dsn: ${OKG_DSN}
+
+runtime:
+  enabled: false
+
+schema_dir: schemas
+source_registry: source_registry.yaml
+mcp_instructions: docs/mcp-instructions.md
+
+modules:
+  - git_graph
+  - extraction
+  - person
+
+embedding:
+  enabled: false
+  reason: Memex-SR currently uses deterministic lexical search and graph traversal.
+
+modules_config:
+  git_graph:
+    repo: engram
+    repo_root: ${repo_root}
+    include_untracked: true
+    include_history: false
+
+  extraction:
+    repo: engram
+    repo_root: ${repo_root}
+    extractors_dir: ${manifest_dir}

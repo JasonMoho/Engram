@@ -1,0 +1,124 @@
+id: https://palimpzest.mit.edu/okg/deployments/memex_sr/base
+name: memex_sr_base
+title: "Memex-SR deployment base"
+description: >-
+  Deployment-owned ontology overlay for Memex-SR corpus governance,
+  literature identity, and acquisition manifests.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  okg: https://palimpzest.mit.edu/okg/
+  memex_sr: https://palimpzest.mit.edu/okg/deployments/memex_sr/
+
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  CorpusPack:
+    description: Approved source-pack scope for a corpus slice.
+    class_uri: memex_sr:CorpusPack
+    attributes:
+      pack_id:
+        required: true
+      name:
+      target_years:
+      paper_count:
+    annotations:
+      archetype: concept
+      transient: 'false'
+      okg_searchable_text_fields: pack_id,name,text
+
+  CorpusCoverageSnapshot:
+    description: Coverage state for one corpus pack at a source-run point.
+    class_uri: memex_sr:CorpusCoverageSnapshot
+    attributes:
+      snapshot_id:
+        required: true
+      pack_id:
+      generated_at:
+      paper_count:
+    annotations:
+      archetype: observation
+      transient: 'false'
+      okg_searchable_text_fields: snapshot_id,pack_id,text
+
+  PublicationSeries:
+    description: Persistent publication series such as OSDI or PVLDB.
+    class_uri: memex_sr:PublicationSeries
+    attributes:
+      series_id:
+        required: true
+      name:
+      short_name:
+    annotations:
+      archetype: concept
+      transient: 'false'
+      okg_searchable_text_fields: name,short_name,text
+      okg_alias_fields: name,short_name
+
+  Venue:
+    description: Conference or journal venue in the Memex-SR target matrix.
+    class_uri: memex_sr:Venue
+    attributes:
+      venue_id:
+        required: true
+      name:
+      short_name:
+      domain:
+    annotations:
+      archetype: concept
+      transient: 'false'
+      okg_searchable_text_fields: name,short_name,text
+      okg_alias_fields: name,short_name
+
+  VenueEdition:
+    description: Year-specific venue edition.
+    class_uri: memex_sr:VenueEdition
+    attributes:
+      edition_id:
+        required: true
+      venue_id:
+      year:
+      name:
+    annotations:
+      archetype: concept
+      transient: 'false'
+      okg_searchable_text_fields: name,venue_id,year,text
+      okg_alias_fields: name
+
+  Paper:
+    description: Canonical paper metadata record for the systems researcher corpus.
+    class_uri: memex_sr:Paper
+    attributes:
+      paper_id:
+        required: true
+      title:
+      abstract:
+      year:
+      doi:
+      openalex_id:
+      venue_id:
+      venue_short_name:
+    annotations:
+      archetype: artifact
+      transient: 'false'
+      okg_searchable_text_fields: title,abstract,doi,openalex_id,text
+      okg_alias_fields: title,doi,openalex_id
+
+  DocumentAsset:
+    description: Acquisition manifest asset or URL hint for a paper/document.
+    class_uri: memex_sr:DocumentAsset
+    attributes:
+      asset_id:
+        required: true
+      asset_kind:
+      url:
+      access_basis:
+      source:
+      downloaded:
+    annotations:
+      archetype: artifact
+      transient: 'false'
+      okg_searchable_text_fields: asset_kind,url,source,text

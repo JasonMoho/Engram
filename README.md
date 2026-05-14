@@ -31,6 +31,15 @@ Engram addresses two critical failure modes of prior approaches:
 
 Engram overcomes both by organizing exploration into a sequence of agents that accumulate knowledge through a persistent **Archive** and **Research Digest**.
 
+This branch also vendors [OKG](https://github.com/mitdbg/okg) as a
+submodule under `external/okg` for a memex-sr memory layer. The intended
+role is to provide literature-backed context packets and, later, durable
+graph ingestion of Engram run artifacts. Collaborators should start with
+[`deployments/memex-sr/HANDOFF.md`](deployments/memex-sr/HANDOFF.md),
+then read [`docs/okg-memex-sr.md`](docs/okg-memex-sr.md),
+[`docs/okg-context-packet.md`](docs/okg-context-packet.md), and
+[`deployments/memex-sr/spec/design.md`](deployments/memex-sr/spec/design.md).
+
 ---
 
 ## How It Works
@@ -198,9 +207,11 @@ Run `python -m Architect.main --help` for all available options.
 ```
 ├── Architect/          # Optimization framework and methods
 ├── SystemBench/        # Benchmark problems and evaluators
+├── deployments/        # Engram-owned external deployments such as memex-sr
 ├── examples/           # Example scripts for running each method
 ├── scripts/            # Analysis and plotting utilities
-└── docs/               # Paper and research notes
+├── external/okg/       # OKG submodule for memex-sr memory
+└── docs/               # Paper, research notes, and OKG integration docs
 ```
 
 See the [Architect README](Architect/README.md), [SystemBench README](SystemBench/README.md), and [examples README](examples/README.md) for details.

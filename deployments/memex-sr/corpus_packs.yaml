@@ -1,0 +1,134 @@
+version: 1
+deployment: memex-sr
+
+packs:
+  - id: systems-db-2022-2026
+    enabled: true
+    state: default
+    description: "Main Memex-SR pack for recent systems, networking, ML systems, and database papers."
+    scope:
+      venue_groups: [systems_networking_ml_systems, databases]
+      years: [2022, 2023, 2024, 2025, 2026]
+      paper_policy_ref: venues.yaml#paper_policy
+    authorities:
+      primary_enumerator: dblp
+      venue_native_sources: [usenix, pvldb, openreview]
+      metadata_enrichers: [crossref, openalex, semantic_scholar, arxiv]
+      full_text_sources: [venue_native_open_access, arxiv, openreview, operator_supplied_assets]
+    access_basis: [metadata_only, open, operator_supplied, licensed_local]
+    host_policy_ref: download_host_policy.yaml
+    parser_bundle: paper_pdf_v0
+    source_sync_keys: [pack_id, venue_id, year, provider, provider_record_id]
+    coverage_metrics:
+      - expected_papers
+      - enumerated_papers
+      - doi_coverage
+      - external_identifier_coverage
+      - pdf_url_hint_coverage
+      - asset_manifest_coverage
+      - parsed_full_text_coverage
+      - parser_warning_count
+      - skipped_or_denied_full_text_count
+    expected_ontology_hits:
+      - CorpusPack
+      - CorpusCoverageSnapshot
+      - Paper
+      - Person
+      - Venue
+      - VenueEdition
+      - PublicationSeries
+      - DocumentAsset
+      - Document
+      - DocumentSection
+      - DocumentChunk
+      - EvidenceSlice
+      - Claim
+      - ResearchProblem
+      - DistillationSection
+
+  - id: systems-db-historical
+    enabled: false
+    state: planned
+    description: "Backfill the same venue matrix before 2022."
+    scope:
+      inherits_venues_from: systems-db-2022-2026
+      year_policy: explicit_ranges_per_venue
+    authorities:
+      primary_enumerator: dblp
+      metadata_enrichers: [crossref, openalex, semantic_scholar]
+      full_text_sources: [operator_supplied_assets, venue_native_open_access, arxiv]
+    access_basis: [metadata_only, open, operator_supplied, licensed_local]
+    host_policy_ref: download_host_policy.yaml
+    parser_bundle: paper_pdf_v0
+    source_sync_keys: [pack_id, venue_id, year, provider, provider_record_id]
+    coverage_metrics: [expected_papers, enumerated_papers, asset_manifest_coverage, parsed_full_text_coverage]
+
+  - id: adjacent-cs-venues
+    enabled: false
+    state: planned
+    description: "Future packs for PL, security, architecture, HCI, AI/ML, and theory papers that become relevant to systems research."
+    scope:
+      venue_groups: []
+      activation_requires: approved_venue_matrix
+    authorities:
+      primary_enumerator: dblp
+      metadata_enrichers: [crossref, openalex, semantic_scholar, openreview]
+    access_basis: [metadata_only, open, operator_supplied, licensed_local]
+    host_policy_ref: download_host_policy.yaml
+    parser_bundle: paper_pdf_v0
+    source_sync_keys: [pack_id, venue_id, year, provider, provider_record_id]
+    coverage_metrics: [expected_papers, enumerated_papers, parsed_full_text_coverage]
+
+  - id: technical-reports-and-standards
+    enabled: false
+    state: manual_manifest
+    description: "Curated RFCs, standards, protocols, architecture reports, and project technical reports."
+    scope:
+      manifest_paths: [deployments/memex-sr/manifests/technical_reports.yaml]
+      allowed_document_kinds: [rfc, standard, protocol, technical_report, architecture_note]
+    authorities:
+      primary_enumerator: curated_manifest
+      metadata_enrichers: [crossref, openalex]
+      full_text_sources: [rfc_editor, standards_body, operator_supplied_assets]
+    access_basis: [open, operator_supplied, licensed_local, metadata_only]
+    host_policy_ref: download_host_policy.yaml
+    parser_bundle: web_and_plain_text_v0
+    source_sync_keys: [pack_id, manifest_path, canonical_url, content_hash]
+    coverage_metrics: [manifest_entries, fetched_documents, parsed_documents, chunk_count, skipped_or_denied_count]
+    expected_ontology_hits: [DocumentAsset, Document, DocumentSection, DocumentChunk, EvidenceSlice, Claim]
+
+  - id: research-engineering-blogs
+    enabled: false
+    state: manual_manifest
+    description: "Curated lab, project, author, and engineering blog posts. No open crawling."
+    scope:
+      manifest_paths: [deployments/memex-sr/manifests/research_blogs.yaml]
+      allowed_document_kinds: [blog_post, project_doc, engineering_note, lab_note]
+    authorities:
+      primary_enumerator: curated_manifest
+      metadata_enrichers: []
+      full_text_sources: [curated_url, operator_supplied_assets]
+    access_basis: [open, operator_supplied]
+    host_policy_ref: download_host_policy.yaml
+    parser_bundle: web_and_markdown_v0
+    source_sync_keys: [pack_id, manifest_path, canonical_url, content_hash]
+    coverage_metrics: [manifest_entries, fetched_documents, parsed_documents, chunk_count, skipped_or_denied_count]
+    expected_ontology_hits: [DocumentAsset, Document, DocumentSection, DocumentChunk, EvidenceSlice, Claim]
+
+  - id: operator-supplied-assets
+    enabled: false
+    state: manual_directory
+    description: "Local PDFs, notes, textbooks, slides, and licensed material supplied by collaborators."
+    scope:
+      local_roots: [deployments/memex-sr/operator_assets]
+      activation_requires: explicit_operator_file_drop
+    authorities:
+      primary_enumerator: local_directory
+      metadata_enrichers: []
+      full_text_sources: [local_file]
+    access_basis: [operator_supplied, licensed_local]
+    host_policy_ref: null
+    parser_bundle: mixed_document_v0
+    source_sync_keys: [pack_id, local_path, content_hash, parser_version]
+    coverage_metrics: [local_assets, parsed_documents, chunk_count, parser_warning_count]
+    expected_ontology_hits: [DocumentAsset, Document, DocumentSection, DocumentChunk, EvidenceSlice]

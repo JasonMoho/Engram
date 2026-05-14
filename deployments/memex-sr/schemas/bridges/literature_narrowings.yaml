@@ -1,0 +1,70 @@
+id: https://palimpzest.mit.edu/okg/deployments/memex_sr/bridges/literature_narrowings
+name: memex_sr_literature_narrowings
+title: "Bridge - literature corpus narrowings"
+description: >-
+  Edge whitelist for Memex-SR corpus packs, venues, papers, people,
+  and acquired document assets.
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  okg: https://palimpzest.mit.edu/okg/
+  memex_sr: https://palimpzest.mit.edu/okg/deployments/memex_sr/
+
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  EdgeNarrowings:
+    description: Memex-SR literature edge narrowing whitelist.
+    annotations:
+      okg_edge_narrowings: "true"
+      okg_relation_kind:
+        authored_by: references
+        published_in: references
+        member_of: references
+        references: references
+        contains: contains
+    attributes:
+      corpus_pack_contains_venue:
+        annotations:
+          edge_archetype: contains
+          src_subtypes: CorpusPack
+          dst_subtypes: Venue
+
+      coverage_snapshot_references_pack:
+        annotations:
+          edge_archetype: references
+          src_subtypes: CorpusCoverageSnapshot
+          dst_subtypes: CorpusPack
+
+      venue_member_of_series:
+        annotations:
+          edge_archetype: member_of
+          src_subtypes: Venue
+          dst_subtypes: PublicationSeries
+
+      venue_contains_edition:
+        annotations:
+          edge_archetype: contains
+          src_subtypes: Venue
+          dst_subtypes: VenueEdition
+
+      paper_published_in_edition:
+        annotations:
+          edge_archetype: published_in
+          src_subtypes: Paper
+          dst_subtypes: VenueEdition
+
+      paper_authored_by_person:
+        annotations:
+          edge_archetype: authored_by
+          src_subtypes: Paper
+          dst_subtypes: Person
+
+      paper_contains_document_asset:
+        annotations:
+          edge_archetype: contains
+          src_subtypes: Paper
+          dst_subtypes: DocumentAsset

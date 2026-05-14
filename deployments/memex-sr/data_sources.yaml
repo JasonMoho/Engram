@@ -1,0 +1,220 @@
+version: 1
+deployment: memex-sr
+
+sample_defaults:
+  limit_per_source: 5
+  timeout_seconds: 20
+  host_policy_path: deployments/memex-sr/download_host_policy.yaml
+  output_path: deployments/memex-sr/samples/source_samples.json
+  coverage_path: deployments/memex-sr/samples/ontology_coverage.md
+
+ontology_targets:
+  CorpusPack: "Corpus governance records"
+  CorpusCoverageSnapshot: "Coverage reports by pack, provider, venue, year, and access basis"
+  Paper: "Canonical paper identity"
+  Person: "Authors and named people"
+  Venue: "Conference/journal venue"
+  VenueEdition: "Venue-year or volume edition"
+  PublicationSeries: "Persistent series such as OSDI or PVLDB"
+  Organization: "Publisher, lab, standards body, or affiliation when useful"
+  Dataset: "Named datasets mentioned in papers or artifacts"
+  Software: "Named systems, codebases, tools, and implementations"
+  Benchmark: "Benchmarks and evaluation suites"
+  DocumentAsset: "Fetched or local asset with access/provenance"
+  Document: "Parsed renderable document"
+  DocumentSection: "Heading-bounded section"
+  DocumentChunk: "Retrievable evidence chunk"
+  EvidenceSlice: "Evidence extracted from chunks"
+  Claim: "Distilled claim with support"
+  ResearchProblem: "Open problem, limitation, or research question"
+  DistillationSection: "Textbook-like generated section"
+  ResearchRun: "Engram run archive"
+  AgentAttempt: "Engram agent attempt"
+  Experiment: "Engram experiment record"
+  CandidateImplementation: "Engram candidate code artifact"
+  MetricObservation: "Engram metric output"
+  FailureDiagnosis: "Engram failure or diagnostic artifact"
+  ResearchNote: "Engram journal or note"
+  WorkspaceArtifact: "Generic Engram archived file"
+
+sources:
+  - id: memex-sr-corpus-configs
+    kind: yaml_config
+    enabled: true
+    pack: systems-db-2022-2026
+    description: "Deployment configuration that defines source packs, venue scope, and coverage policy."
+    paths:
+      - deployments/memex-sr/venues.yaml
+      - deployments/memex-sr/corpus_packs.yaml
+      - deployments/memex-sr/corpus_policy.yaml
+      - deployments/memex-sr/data_sources.yaml
+      - deployments/memex-sr/download_host_policy.yaml
+    ontology_hits: [CorpusPack, CorpusCoverageSnapshot, Venue, VenueEdition, PublicationSeries]
+    validates:
+      - corpus governance source data
+      - collaborator extension surface
+
+  - id: local-memex-sr-design-corpus
+    kind: local_glob
+    enabled: true
+    pack: operator-supplied-assets
+    description: "Stable Memex-SR design and context documents indexed by the doc-corpus source."
+    globs:
+      - deployments/memex-sr/spec/proposal.md
+      - deployments/memex-sr/spec/design.md
+      - deployments/memex-sr/spec/memex-sr-deployment.md
+      - deployments/memex-sr/seed_corpus/*.md
+      - docs/okg-memex-sr.md
+      - docs/okg-context-packet.md
+    ontology_hits: [Document, DocumentSection, DocumentChunk, EvidenceSlice, Claim, ResearchProblem, DistillationSection]
+    validates:
+      - local document parsing path
+      - deterministic no-network publish input
+
+  - id: dblp-osdi-2023-toc
+    kind: dblp_toc_html
+    enabled: true
+    pack: systems-db-2022-2026
+    venue_id: osdi
+    year: 2023
+    url: https://dblp.org/db/conf/osdi/osdi2023.html
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries]
+    validates:
+      - authoritative venue/year enumeration
+      - paper/person identity seed
+    notes: "Local shell probes reset/timed out on 2026-05-14, but browser access to the DBLP page succeeded."
+
+  - id: usenix-osdi23-technical-sessions
+    kind: usenix_technical_sessions
+    enabled: true
+    pack: systems-db-2022-2026
+    venue_id: osdi
+    year: 2023
+    url: https://www.usenix.org/conference/osdi23/technical-sessions
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, DocumentAsset]
+    validates:
+      - venue-native paper page discovery
+      - open PDF URL hints without downloading PDFs
+
+  - id: pvldb-volume-16
+    kind: vldb_volume
+    enabled: true
+    pack: systems-db-2022-2026
+    venue_id: pvldb
+    year: 2023
+    url: https://www.vldb.org/pvldb/volumes/16/
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, DocumentAsset, Document]
+    validates:
+      - PVLDB volume metadata
+      - title and author extraction from venue-native page data
+
+  - id: openalex-scalene-search
+    kind: openalex_search
+    enabled: true
+    pack: systems-db-2022-2026
+    query: "Triangulating Python Performance Issues with Scalene"
+    url: https://api.openalex.org/works
+    params:
+      search: "Triangulating Python Performance Issues with Scalene"
+      per-page: 3
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, Organization, Software]
+    validates:
+      - metadata enrichment
+      - external identifiers
+      - open-access hints
+
+  - id: crossref-scalene-title-query
+    kind: crossref_query_title
+    enabled: true
+    coverage_mode: diagnostic_only
+    pack: systems-db-2022-2026
+    query: "Triangulating Python Performance Issues with Scalene"
+    url: https://api.crossref.org/works
+    params:
+      query.bibliographic: "Triangulating Python Performance Issues with Scalene"
+      rows: 3
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, Organization]
+    validates:
+      - DOI enrichment behavior
+      - low-precision broad title query detection
+    notes: "Expected to be noisy unless constrained by DOI or target-set identity."
+
+  - id: systems-artifact-manifest-fixture
+    kind: yaml_config
+    enabled: true
+    pack: operator-supplied-assets
+    description: "Small fixture for dataset/software/benchmark ontology coverage until full-text extraction produces these nodes."
+    paths:
+      - deployments/memex-sr/fixtures/systems_artifacts.yaml
+    ontology_hits: [Dataset, Software, Benchmark, Paper, DocumentAsset]
+    validates:
+      - curated artifact manifest shape
+      - extraction targets for named systems, datasets, and benchmarks
+
+  - id: semantic-scholar-scalene-search
+    kind: semantic_scholar_search
+    enabled: true
+    pack: systems-db-2022-2026
+    query: "Triangulating Python Performance Issues with Scalene"
+    url: https://api.semanticscholar.org/graph/v1/paper/search
+    params:
+      query: "Triangulating Python Performance Issues with Scalene"
+      limit: 3
+      fields: "title,year,authors,venue,externalIds,url,openAccessPdf"
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, DocumentAsset, Software]
+    validates:
+      - citation/abstract enrichment path
+      - rate-limit handling
+
+  - id: openreview-mlsys-2024-notes
+    kind: openreview_notes
+    enabled: true
+    pack: systems-db-2022-2026
+    venue_id: mlsys
+    year: 2024
+    url: https://api2.openreview.net/notes
+    params:
+      content.venueid: "MLSys.cc/2024/Conference"
+      limit: 5
+    ontology_hits: [Paper, Person, Venue, VenueEdition, PublicationSeries, DocumentAsset]
+    validates:
+      - OpenReview venue metadata discovery
+      - PDF URL hint extraction
+    notes: "Initial venueid probe returned zero notes; source needs venue-id refinement."
+
+  - id: rfc-editor-rfc9000
+    kind: rfc_text
+    enabled: true
+    pack: technical-reports-and-standards
+    document_kind: rfc
+    url: https://www.rfc-editor.org/rfc/rfc9000.txt
+    ontology_hits: [Organization, DocumentAsset, Document, DocumentSection, DocumentChunk, EvidenceSlice, Claim]
+    validates:
+      - technical standards source path
+      - plain-text document parser path
+
+  - id: arxiv-scalene-title-query
+    kind: arxiv_query
+    enabled: true
+    pack: systems-db-2022-2026
+    query: "Triangulating Python Performance Issues with Scalene"
+    url: https://export.arxiv.org/api/query
+    params:
+      search_query: 'ti:"Triangulating Python Performance Issues with Scalene"'
+      start: 0
+      max_results: 2
+    ontology_hits: [Paper, Person, DocumentAsset, Document]
+    validates:
+      - preprint metadata and PDF hint path
+    notes: "Local probe timed out on 2026-05-14; keep sampled but non-blocking."
+
+  - id: engram-workspace-fixture
+    kind: engram_workspace_fixture
+    enabled: true
+    pack: operator-supplied-assets
+    description: "Representative Engram archive layout for research-memory ontology coverage."
+    root: deployments/memex-sr/fixtures/engram_workspace/run_sample_001
+    ontology_hits: [ResearchRun, AgentAttempt, Experiment, CandidateImplementation, MetricObservation, FailureDiagnosis, ResearchNote, WorkspaceArtifact]
+    validates:
+      - Engram workspace indexer source shape
+      - research-memory ontology targets

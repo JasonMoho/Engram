@@ -1,0 +1,198 @@
+version: 1
+deployment: memex-sr
+target_years: [2022, 2023, 2024, 2025, 2026]
+
+paper_policy:
+  default_scope: main_research_track
+  include:
+    - peer_reviewed_research_papers
+    - systems_database_track_papers
+    - proceedings_articles_for_target_venue_editions
+  exclude_by_default:
+    - workshops
+    - tutorials
+    - posters
+    - keynote_abstracts
+    - panels
+    - calls_for_papers
+    - front_matter
+  notes:
+    - "Venue configuration records intended scope. Source samplers verify concrete provider coverage before publish sources rely on a venue."
+    - "2026 is year-to-date as of 2026-05-14."
+
+venue_groups:
+  systems_networking_ml_systems:
+    description: "First-pass autonomous systems researcher corpus."
+    venues:
+      - id: sosp
+        name: "ACM Symposium on Operating Systems Principles"
+        short_name: SOSP
+        series: ACM SOSP
+        cadence: biennial
+        dblp:
+          provider_key_hint: conf/sosp
+          path_template_hint: "conf/sosp/sosp{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: osdi
+        name: "USENIX Symposium on Operating Systems Design and Implementation"
+        short_name: OSDI
+        series: USENIX OSDI
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/osdi
+          path_template_hint: "conf/osdi/osdi{year}"
+          status: sampled_locally_unreliable
+        default_providers: [dblp, usenix, crossref, openalex, semantic_scholar]
+      - id: nsdi
+        name: "USENIX Symposium on Networked Systems Design and Implementation"
+        short_name: NSDI
+        series: USENIX NSDI
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/nsdi
+          path_template_hint: "conf/nsdi/nsdi{year}"
+          status: needs_sampling
+        default_providers: [dblp, usenix, crossref, openalex, semantic_scholar]
+      - id: sigcomm
+        name: "ACM SIGCOMM"
+        short_name: SIGCOMM
+        series: ACM SIGCOMM
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/sigcomm
+          path_template_hint: "conf/sigcomm/sigcomm{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: hotnets
+        name: "ACM Workshop on Hot Topics in Networks"
+        short_name: HotNets
+        series: ACM HotNets
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/hotnets
+          path_template_hint: "conf/hotnets/hotnets{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: conext
+        name: "International Conference on emerging Networking EXperiments and Technologies"
+        short_name: CoNEXT
+        series: ACM CoNEXT
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/conext
+          path_template_hint: "conf/conext/conext{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: eurosys
+        name: "European Conference on Computer Systems"
+        short_name: EuroSys
+        series: EuroSys
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/eurosys
+          path_template_hint: "conf/eurosys/eurosys{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: usenix_atc
+        name: "USENIX Annual Technical Conference"
+        short_name: USENIX ATC
+        series: USENIX ATC
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/usenix
+          path_template_hint: "conf/usenix/usenix{year}"
+          status: needs_sampling
+        default_providers: [dblp, usenix, crossref, openalex, semantic_scholar]
+      - id: socc
+        name: "ACM Symposium on Cloud Computing"
+        short_name: SoCC
+        series: ACM SoCC
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/cloud
+          path_template_hint: "conf/cloud/socc{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: mlsys
+        name: "Conference on Machine Learning and Systems"
+        short_name: MLSys
+        series: MLSys
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/mlsys
+          path_template_hint: "conf/mlsys/mlsys{year}"
+          status: needs_sampling
+        default_providers: [dblp, openreview, crossref, openalex, semantic_scholar]
+
+  databases:
+    description: "Database systems and data management corpus."
+    venues:
+      - id: sigmod
+        name: "ACM SIGMOD International Conference on Management of Data"
+        short_name: SIGMOD
+        series: ACM SIGMOD
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/sigmod
+          path_template_hint: "conf/sigmod/sigmod{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: pvldb
+        name: "Proceedings of the VLDB Endowment"
+        short_name: PVLDB
+        series: PVLDB
+        cadence: rolling_volume
+        dblp:
+          provider_key_hint: journals/pvldb
+          path_template_hint: "journals/pvldb/pvldb{volume}"
+          status: needs_volume_mapping
+        default_providers: [pvldb, dblp, crossref, openalex, semantic_scholar]
+      - id: pods
+        name: "ACM Symposium on Principles of Database Systems"
+        short_name: PODS
+        series: ACM PODS
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/pods
+          path_template_hint: "conf/pods/pods{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, acm_dl]
+      - id: cidr
+        name: "Conference on Innovative Data Systems Research"
+        short_name: CIDR
+        series: CIDR
+        cadence: biennial
+        dblp:
+          provider_key_hint: conf/cidr
+          path_template_hint: "conf/cidr/cidr{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar]
+      - id: icde
+        name: "IEEE International Conference on Data Engineering"
+        short_name: ICDE
+        series: IEEE ICDE
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/icde
+          path_template_hint: "conf/icde/icde{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar, ieee_xplore]
+      - id: edbt
+        name: "International Conference on Extending Database Technology"
+        short_name: EDBT
+        series: EDBT
+        cadence: annual
+        dblp:
+          provider_key_hint: conf/edbt
+          path_template_hint: "conf/edbt/edbt{year}"
+          status: needs_sampling
+        default_providers: [dblp, crossref, openalex, semantic_scholar]
+
+coverage_expectations:
+  metadata:
+    required_for_publish: [canonical_paper_id, title, authors, venue_edition, publication_year]
+    preferred: [doi, dblp_key, openalex_id, semantic_scholar_id, arxiv_id, pdf_url_hint]
+  full_text:
+    required_for_document_publish: [asset_manifest_entry, access_basis, local_path, content_hash, parser_version]
+    preferred: [license, etag, last_modified, page_count, section_index, parser_warnings]

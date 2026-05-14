@@ -1,0 +1,676 @@
+{
+  "config_path": "deployments/memex-sr/data_sources.yaml",
+  "deployment": "memex-sr",
+  "generated_at": "2026-05-14T17:05:13+00:00",
+  "host_policy_path": "deployments/memex-sr/download_host_policy.yaml",
+  "limit_per_source": 5,
+  "samples": [
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "CorpusPack",
+        "CorpusCoverageSnapshot",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries"
+      ],
+      "error": null,
+      "http_status": null,
+      "item_count": 5,
+      "kind": "yaml_config",
+      "notes": [],
+      "observed_ontology_hits": [
+        "CorpusPack",
+        "CorpusCoverageSnapshot",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries"
+      ],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [
+        {
+          "path": "deployments/memex-sr/venues.yaml",
+          "status": "ok",
+          "top_level_keys": [
+            "coverage_expectations",
+            "deployment",
+            "paper_policy",
+            "target_years",
+            "venue_groups",
+            "version"
+          ],
+          "venue_count": 16,
+          "venue_group_count": 2
+        },
+        {
+          "enabled_pack_count": 1,
+          "pack_count": 6,
+          "path": "deployments/memex-sr/corpus_packs.yaml",
+          "status": "ok",
+          "top_level_keys": [
+            "deployment",
+            "packs",
+            "version"
+          ]
+        },
+        {
+          "path": "deployments/memex-sr/corpus_policy.yaml",
+          "status": "ok",
+          "top_level_keys": [
+            "deployment",
+            "download_governance",
+            "identity_rules",
+            "incremental_rules",
+            "ontology_coverage_targets",
+            "principles",
+            "version"
+          ]
+        },
+        {
+          "path": "deployments/memex-sr/data_sources.yaml",
+          "source_count": 13,
+          "status": "ok",
+          "top_level_keys": [
+            "deployment",
+            "ontology_targets",
+            "sample_defaults",
+            "sources",
+            "version"
+          ]
+        },
+        {
+          "path": "deployments/memex-sr/download_host_policy.yaml",
+          "status": "ok",
+          "top_level_keys": [
+            "defaults",
+            "deployment",
+            "hosts",
+            "version"
+          ]
+        }
+      ],
+      "source_id": "memex-sr-corpus-configs",
+      "status": "ok",
+      "url": null,
+      "validates": [
+        "corpus governance source data",
+        "collaborator extension surface"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "Document",
+        "DocumentSection",
+        "DocumentChunk",
+        "EvidenceSlice",
+        "Claim",
+        "ResearchProblem",
+        "DistillationSection"
+      ],
+      "error": null,
+      "http_status": null,
+      "item_count": 5,
+      "kind": "local_glob",
+      "notes": [],
+      "observed_ontology_hits": [
+        "Document",
+        "DocumentSection",
+        "DocumentChunk",
+        "EvidenceSlice",
+        "Claim",
+        "ResearchProblem",
+        "DistillationSection"
+      ],
+      "pack": "operator-supplied-assets",
+      "sample_items": [
+        {
+          "byte_count": 2765,
+          "path": "deployments/memex-sr/PHASE0.md",
+          "title": "Memex-SR Phase 0 Local Setup"
+        },
+        {
+          "byte_count": 1593,
+          "path": "deployments/memex-sr/README.md",
+          "title": "Memex-SR"
+        },
+        {
+          "byte_count": 25979,
+          "path": "deployments/memex-sr/spec/design.md",
+          "title": "Design: Memex-SR Deployment"
+        },
+        {
+          "byte_count": 22353,
+          "path": "deployments/memex-sr/spec/memex-sr-deployment.md",
+          "title": "ADDED Requirements"
+        },
+        {
+          "byte_count": 7307,
+          "path": "deployments/memex-sr/spec/proposal.md",
+          "title": "Change: Add Memex-SR Deployment"
+        }
+      ],
+      "source_id": "local-memex-sr-design-corpus",
+      "status": "ok",
+      "url": null,
+      "validates": [
+        "local document parsing path",
+        "deterministic no-network publish input"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries"
+      ],
+      "error": "('Connection aborted.', ConnectionResetError(54, 'Connection reset by peer'))",
+      "http_status": null,
+      "item_count": 0,
+      "kind": "dblp_toc_html",
+      "notes": [
+        "Local shell probes reset/timed out on 2026-05-14, but browser access to the DBLP page succeeded."
+      ],
+      "observed_ontology_hits": [],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [],
+      "source_id": "dblp-osdi-2023-toc",
+      "status": "network_error",
+      "url": "https://dblp.org/db/conf/osdi/osdi2023.html",
+      "validates": [
+        "authoritative venue/year enumeration",
+        "paper/person identity seed"
+      ],
+      "venue_id": "osdi",
+      "year": 2023
+    },
+    {
+      "content_type": "text/html; charset=utf-8",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 5,
+      "kind": "usenix_technical_sessions",
+      "notes": [
+        "pdf_hint_count=6",
+        "PDF links are counted but not downloaded by the sampler."
+      ],
+      "observed_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset"
+      ],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [
+        {
+          "title": "Ship your Critical Section, Not Your Data: Enabling Transparent Delegation with TCLOCKS",
+          "url": "https://www.usenix.org/conference/osdi23/presentation/gupta"
+        },
+        {
+          "title": "RON: One-Way Circular Shortest Routing to Achieve Efficient and Bounded-waiting Spinlocks",
+          "url": "https://www.usenix.org/conference/osdi23/presentation/lo"
+        },
+        {
+          "title": "Userspace Bypass: Accelerating Syscall-intensive Applications",
+          "url": "https://www.usenix.org/conference/osdi23/presentation/zhou-zhe"
+        },
+        {
+          "title": "Triangulating Python Performance Issues with SCALENE",
+          "url": "https://www.usenix.org/conference/osdi23/presentation/berger"
+        },
+        {
+          "title": "Relational Debugging --- Pinpointing Root Causes of Performance Problems",
+          "url": "https://www.usenix.org/conference/osdi23/presentation/ren"
+        }
+      ],
+      "source_id": "usenix-osdi23-technical-sessions",
+      "status": "ok",
+      "url": "https://www.usenix.org/conference/osdi23/technical-sessions",
+      "validates": [
+        "venue-native paper page discovery",
+        "open PDF URL hints without downloading PDFs"
+      ],
+      "venue_id": "osdi",
+      "year": 2023
+    },
+    {
+      "content_type": "text/html",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset",
+        "Document"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 5,
+      "kind": "vldb_volume",
+      "notes": [],
+      "observed_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset",
+        "Document"
+      ],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [
+        {
+          "authors": "Jeffrey Helt, Abhinav Sharma, Daniel J Abadi, Wyatt Lloyd, Jose Faleiro",
+          "paper_id": "vol16/p1-helt",
+          "title": "C5: Cloned Concurrency Control That Always Keeps Up"
+        },
+        {
+          "authors": "Ruihong Wang, Jianguo Wang, Stratos Idreos, Tamer \u00d6zsu, Walid G Aref",
+          "paper_id": "vol16/p15-wang",
+          "title": "The Case for Distributed Shared-Memory Databases with RDMA-Enabled Memory Disaggregation"
+        },
+        {
+          "authors": "Chenyuan Wu, Mohammad Javad Amiri, Jared Asch, Heena Nagda, Qizhen Zhang, Boon Thau Loo",
+          "paper_id": "vol16/p23-wu",
+          "title": "FlexChain: An Elastic Disaggregated Blockchain"
+        },
+        {
+          "authors": "Zhen Zhang, Shuai Zheng, Yida Wang, Justin Chiu, George Karypis, Trishul A Chilimbi, Mu Li, Xin Jin",
+          "paper_id": "vol16/p37-zhang",
+          "title": "MiCS: Near-linear Scaling for Training Gigantic Model on Public Cloud"
+        },
+        {
+          "authors": "Yi Yang, Yurong Cheng, Ye Yuan, Guoren Wang, Lei Chen, Yongjiao Sun",
+          "paper_id": "vol16/p51-yang",
+          "title": "Privacy-preserving Cooperative Online Matching over Spatial Crowdsourcing Platforms"
+        }
+      ],
+      "source_id": "pvldb-volume-16",
+      "status": "ok",
+      "url": "https://www.vldb.org/pvldb/volumes/16/",
+      "validates": [
+        "PVLDB volume metadata",
+        "title and author extraction from venue-native page data"
+      ],
+      "venue_id": "pvldb",
+      "year": 2023
+    },
+    {
+      "content_type": "application/json",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "Organization",
+        "Software"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 3,
+      "kind": "openalex_search",
+      "notes": [],
+      "observed_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "Organization",
+        "Software"
+      ],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [
+        {
+          "doi": "https://doi.org/10.48550/arxiv.2212.07597",
+          "is_oa": true,
+          "openalex_id": "https://openalex.org/W4311725886",
+          "source": "arXiv (Cornell University)",
+          "title": "Triangulating Python Performance Issues with Scalene",
+          "year": 2022
+        },
+        {
+          "doi": "https://doi.org/10.48550/arxiv.2303.17651",
+          "is_oa": true,
+          "openalex_id": "https://openalex.org/W4362508231",
+          "source": "arXiv (Cornell University)",
+          "title": "Self-Refine: Iterative Refinement with Self-Feedback",
+          "year": 2023
+        },
+        {
+          "doi": "https://doi.org/10.1145/3643742",
+          "is_oa": true,
+          "openalex_id": "https://openalex.org/W4392425548",
+          "source": "Proceedings of the ACM on software engineering.",
+          "title": "DyPyBench: A Benchmark of Executable Python Software",
+          "year": 2024
+        }
+      ],
+      "source_id": "openalex-scalene-search",
+      "status": "ok",
+      "url": "https://api.openalex.org/works",
+      "validates": [
+        "metadata enrichment",
+        "external identifiers",
+        "open-access hints"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": "application/json",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "Organization"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 3,
+      "kind": "crossref_query_title",
+      "notes": [
+        "Expected to be noisy unless constrained by DOI or target-set identity.",
+        "diagnostic_only_source_not_counted_for_coverage"
+      ],
+      "observed_ontology_hits": [],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [
+        {
+          "container": "Journalistic Role Performance",
+          "doi": "10.4324/9781315768854-24",
+          "published_year": 2016,
+          "score": 21.031647,
+          "title": "Triangulating Methods in the Study of Journalistic Role Performance"
+        },
+        {
+          "container": "Python for Scientists",
+          "doi": "10.1017/9781009029728.010",
+          "published_year": 2023,
+          "score": 20.821352,
+          "title": "Performance Python"
+        },
+        {
+          "container": "Minor Transpacific",
+          "doi": "10.1515/9781503628014-004",
+          "published_year": 2021,
+          "score": 20.250929,
+          "title": "Introduction: Triangulating Fictions"
+        }
+      ],
+      "source_id": "crossref-scalene-title-query",
+      "status": "ok",
+      "url": "https://api.crossref.org/works",
+      "validates": [
+        "DOI enrichment behavior",
+        "low-precision broad title query detection"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "Dataset",
+        "Software",
+        "Benchmark",
+        "Paper",
+        "DocumentAsset"
+      ],
+      "error": null,
+      "http_status": null,
+      "item_count": 1,
+      "kind": "yaml_config",
+      "notes": [],
+      "observed_ontology_hits": [
+        "Dataset",
+        "Software",
+        "Benchmark",
+        "Paper",
+        "DocumentAsset"
+      ],
+      "pack": "operator-supplied-assets",
+      "sample_items": [
+        {
+          "path": "deployments/memex-sr/fixtures/systems_artifacts.yaml",
+          "status": "ok",
+          "top_level_keys": [
+            "description",
+            "fixture",
+            "records",
+            "version"
+          ]
+        }
+      ],
+      "source_id": "systems-artifact-manifest-fixture",
+      "status": "ok",
+      "url": null,
+      "validates": [
+        "curated artifact manifest shape",
+        "extraction targets for named systems, datasets, and benchmarks"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": "application/json",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset",
+        "Software"
+      ],
+      "error": null,
+      "http_status": 429,
+      "item_count": 0,
+      "kind": "semantic_scholar_search",
+      "notes": [
+        "Semantic Scholar should be used with API-key-aware rate handling in production."
+      ],
+      "observed_ontology_hits": [],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [],
+      "source_id": "semantic-scholar-scalene-search",
+      "status": "rate_limited",
+      "url": "https://api.semanticscholar.org/graph/v1/paper/search",
+      "validates": [
+        "citation/abstract enrichment path",
+        "rate-limit handling"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": "application/json; charset=utf-8",
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "Venue",
+        "VenueEdition",
+        "PublicationSeries",
+        "DocumentAsset"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 0,
+      "kind": "openreview_notes",
+      "notes": [
+        "Initial venueid probe returned zero notes; source needs venue-id refinement.",
+        "OpenReview source may need invitation/venue-id discovery before production."
+      ],
+      "observed_ontology_hits": [],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [],
+      "source_id": "openreview-mlsys-2024-notes",
+      "status": "empty",
+      "url": "https://api2.openreview.net/notes",
+      "validates": [
+        "OpenReview venue metadata discovery",
+        "PDF URL hint extraction"
+      ],
+      "venue_id": "mlsys",
+      "year": 2024
+    },
+    {
+      "content_type": "text/plain; charset=utf-8",
+      "declared_ontology_hits": [
+        "Organization",
+        "DocumentAsset",
+        "Document",
+        "DocumentSection",
+        "DocumentChunk",
+        "EvidenceSlice",
+        "Claim"
+      ],
+      "error": null,
+      "http_status": 200,
+      "item_count": 1,
+      "kind": "rfc_text",
+      "notes": [
+        "Sampler stores metadata only; production parser should chunk local fetched text."
+      ],
+      "observed_ontology_hits": [
+        "Organization",
+        "DocumentAsset",
+        "Document",
+        "DocumentSection",
+        "DocumentChunk",
+        "EvidenceSlice",
+        "Claim"
+      ],
+      "pack": "technical-reports-and-standards",
+      "sample_items": [
+        {
+          "byte_count": 403442,
+          "line_sample_count": 80,
+          "title_or_header": "QUIC: A UDP-Based Multiplexed and Secure Transport"
+        }
+      ],
+      "source_id": "rfc-editor-rfc9000",
+      "status": "ok",
+      "url": "https://www.rfc-editor.org/rfc/rfc9000.txt",
+      "validates": [
+        "technical standards source path",
+        "plain-text document parser path"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "Paper",
+        "Person",
+        "DocumentAsset",
+        "Document"
+      ],
+      "error": "HTTPSConnectionPool(host='export.arxiv.org', port=443): Read timed out. (read timeout=20)",
+      "http_status": null,
+      "item_count": 0,
+      "kind": "arxiv_query",
+      "notes": [
+        "Local probe timed out on 2026-05-14; keep sampled but non-blocking."
+      ],
+      "observed_ontology_hits": [],
+      "pack": "systems-db-2022-2026",
+      "sample_items": [],
+      "source_id": "arxiv-scalene-title-query",
+      "status": "timeout",
+      "url": "https://export.arxiv.org/api/query",
+      "validates": [
+        "preprint metadata and PDF hint path"
+      ],
+      "venue_id": null,
+      "year": null
+    },
+    {
+      "content_type": null,
+      "declared_ontology_hits": [
+        "ResearchRun",
+        "AgentAttempt",
+        "Experiment",
+        "CandidateImplementation",
+        "MetricObservation",
+        "FailureDiagnosis",
+        "ResearchNote",
+        "WorkspaceArtifact"
+      ],
+      "error": null,
+      "http_status": null,
+      "item_count": 5,
+      "kind": "engram_workspace_fixture",
+      "notes": [],
+      "observed_ontology_hits": [
+        "ResearchRun",
+        "AgentAttempt",
+        "Experiment",
+        "CandidateImplementation",
+        "MetricObservation",
+        "FailureDiagnosis",
+        "ResearchNote",
+        "WorkspaceArtifact"
+      ],
+      "pack": "operator-supplied-assets",
+      "sample_items": [
+        {
+          "artifact_kind": "research_note",
+          "byte_count": 271,
+          "path": "deployments/memex-sr/fixtures/engram_workspace/run_sample_001/research_journal.md"
+        },
+        {
+          "artifact_kind": "agent_attempt",
+          "byte_count": 195,
+          "path": "deployments/memex-sr/fixtures/engram_workspace/run_sample_001/knowledgebase/agent_1/summary.md"
+        },
+        {
+          "artifact_kind": "experiment_score",
+          "byte_count": 72,
+          "path": "deployments/memex-sr/fixtures/engram_workspace/run_sample_001/experiments/exp_001/score.txt"
+        },
+        {
+          "artifact_kind": "candidate_implementation",
+          "byte_count": 205,
+          "path": "deployments/memex-sr/fixtures/engram_workspace/run_sample_001/experiments/exp_001/snapshot.py"
+        },
+        {
+          "artifact_kind": "metric_observation",
+          "byte_count": 137,
+          "path": "deployments/memex-sr/fixtures/engram_workspace/run_sample_001/experiments/exp_001/results/metrics.json"
+        }
+      ],
+      "source_id": "engram-workspace-fixture",
+      "status": "ok",
+      "url": null,
+      "validates": [
+        "Engram workspace indexer source shape",
+        "research-memory ontology targets"
+      ],
+      "venue_id": null,
+      "year": null
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+version: 1
+fixture: systems-artifact-manifest
+description: "Representative named artifacts the paper/full-text extraction layer should emit as Dataset, Software, and Benchmark nodes."
+records:
+  - paper_hint: "Triangulating Python Performance Issues with Scalene"
+    software:
+      - name: Scalene
+        kind: profiler
+        url: https://github.com/plasma-umass/scalene
+    benchmarks:
+      - name: PyPerformance
+        kind: benchmark_suite
+      - name: Python microbenchmark suite
+        kind: benchmark_suite
+    datasets:
+      - name: Python package workload corpus
+        kind: workload_corpus
+    document_assets:
+      - access_basis: open
+        source_hint: usenix_osdi23
+  - paper_hint: "C5: Cloned Concurrency Control That Always Keeps Up"
+    software:
+      - name: C5
+        kind: concurrency_control_system
+    benchmarks:
+      - name: TPC-C
+        kind: transaction_processing_benchmark
+    datasets:
+      - name: transactional workload traces
+        kind: workload_trace
+    document_assets:
+      - access_basis: open
+        source_hint: pvldb_volume_16
