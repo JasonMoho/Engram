@@ -20,6 +20,34 @@ Memex-SR database if needed, loads extensions, migrates schema, loads
 the catalog, publishes the committed local cut, and prints deployment
 status.
 
+Preflight only:
+
+```bash
+bash deployments/memex-sr/scripts/bootstrap_local.sh --check-only
+```
+
+If `uv` is missing:
+
+```bash
+bash deployments/memex-sr/scripts/bootstrap_local.sh --install-uv
+```
+
+If Docker is installed but your user cannot access the Docker daemon,
+ask an admin to add you to the `docker` group and then log out and back
+in:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
+If you need to use an existing Postgres instead of local Docker, create
+a database with the required OKG extensions and run:
+
+```bash
+export MEMEX_SR_OKG_DSN=postgres://USER:PASS@HOST:PORT/DB
+bash deployments/memex-sr/scripts/bootstrap_local.sh --skip-docker
+```
+
 ## Environment
 
 ```bash

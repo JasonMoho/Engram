@@ -74,6 +74,11 @@ The bootstrap script expects:
 The script starts the OKG Postgres compose stack, creates the Memex-SR
 database, installs extensions, migrates OKG schema, loads the
 Memex-SR catalog, publishes the committed local cut, and prints status.
+Run `bash deployments/memex-sr/scripts/bootstrap_local.sh --check-only`
+to check prerequisites without starting Postgres. If `uv` is missing,
+rerun with `--install-uv`. If Docker daemon access is not available,
+either ask an admin to add the user to the `docker` group or provide an
+existing Postgres DSN and rerun with `--skip-docker`.
 
 ## Manual Verification
 
