@@ -242,6 +242,28 @@ downloader input should be a manifest with terminal states such as
 `verified_pdf`, `landing_only`, `blocked`, `needs_operator_asset`, or
 `failed_retryable`.
 
+The first deterministic planning layer is now:
+
+```bash
+uv --project external/okg run \
+  python "$PWD/deployments/memex-sr/scripts/plan_acquisition.py" \
+    --include-textbooks \
+    --out /tmp/memex-sr-acquisition-plan.json
+```
+
+On the committed paper cut, this currently yields:
+
+```text
+total_records: 7,312
+fetch_open: 2,969
+queue_mit_manual: 185
+skip_metadata_only: 4,158
+```
+
+This is not yet the verified URL audit because it does not issue
+bounded `HEAD`/`GET` probes. It is the permission/access-basis gate that
+feeds the later audit and downloader.
+
 ### 4. Guardrail Invariants
 
 Add deployment invariants before full text:

@@ -43,6 +43,11 @@ Runtime artifacts live beside the spec:
   [`download_host_policy.yaml`](download_host_policy.yaml) define the
   target venue matrix, expansion packs, incremental policy, and host
   governance.
+- [`acquisition_policy.yaml`](acquisition_policy.yaml),
+  [`textbook_sources.yaml`](textbook_sources.yaml), and
+  [`docs/source-acquisition.md`](docs/source-acquisition.md) define the
+  paper/textbook acquisition lanes, including open automated fetches
+  versus MIT-authenticated operator queues.
 - [`data_sources.yaml`](data_sources.yaml) declares bounded source
   samples for provider and ontology coverage checks.
 - [`extractors.yaml`](extractors.yaml) parses and chunks Markdown/text.
@@ -67,6 +72,9 @@ Current local cut:
 - Sources in the current cut: USENIX, PVLDB, and OpenAlex
 - Status: metadata and asset URL hints are published; parsed full text
   has not been ingested yet
+- Current acquisition-plan shape over the committed cut: 7,312 asset
+  plan records, 2,969 open fetch candidates, 185 MIT/manual candidates,
+  and 4,158 metadata-only records.
 
 If implementation requires a substrate change in OKG itself, that
 should be proposed separately in the OKG repository. Memex-SR-specific

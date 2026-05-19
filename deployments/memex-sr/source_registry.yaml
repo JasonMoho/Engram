@@ -45,6 +45,7 @@ sources:
         - deployments/memex-sr/spec/proposal.md
         - deployments/memex-sr/spec/design.md
         - deployments/memex-sr/spec/memex-sr-deployment.md
+        - deployments/memex-sr/docs/source-acquisition.md
         - deployments/memex-sr/seed_corpus/*.md
         - docs/okg-memex-sr.md
         - docs/okg-context-packet.md
@@ -70,6 +71,7 @@ sources:
           - deployments/memex-sr/spec/proposal.md
           - deployments/memex-sr/spec/design.md
           - deployments/memex-sr/spec/memex-sr-deployment.md
+          - deployments/memex-sr/docs/source-acquisition.md
           - deployments/memex-sr/seed_corpus/*.md
           - docs/okg-memex-sr.md
           - docs/okg-context-packet.md

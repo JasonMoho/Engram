@@ -50,7 +50,10 @@ Read in this order:
 3. [`docs/pre-full-text-readiness.md`](docs/pre-full-text-readiness.md)
    for current graph counts, known corpus gaps, and the gates before PDF
    acquisition.
-4. [`spec/design.md`](spec/design.md) for the longer-term deployment
+4. [`docs/source-acquisition.md`](docs/source-acquisition.md) for the
+   allowed acquisition lanes for open PDFs, MIT-authenticated material,
+   textbooks, and operator-supplied local assets.
+5. [`spec/design.md`](spec/design.md) for the longer-term deployment
    architecture.
 
 ## Clean Local Bootstrap
@@ -181,7 +184,20 @@ Do this before full-text download:
 5. A fresh local rebuild from an empty database before opening this to a
    wider collaborator group.
 
-The next implementation step is audit/reporting, not PDF download.
+For acquisition planning, run:
+
+```bash
+uv --project external/okg run \
+  python "$PWD/deployments/memex-sr/scripts/plan_acquisition.py" \
+    --include-textbooks \
+    --out /tmp/memex-sr-acquisition-plan.json
+```
+
+The current committed cut produces 7,312 plan records when enabled
+textbooks are included: 2,969 `fetch_open`, 185 `queue_mit_manual`, and
+4,158 `skip_metadata_only`. The next implementation step is
+audit/reporting plus a downloader that consumes only `fetch_open`, not a
+publisher or MIT proxy scraper.
 
 ## Known Corpus Gaps
 

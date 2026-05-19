@@ -1,0 +1,76 @@
+version: 1
+deployment: memex-sr
+
+description: >-
+  Curated textbook and long-form reference targets for the autonomous
+  systems researcher. This file is a target list, not permission to
+  download. The acquisition planner decides whether each entry is open,
+  operator-supplied, MIT-manual, or blocked.
+
+defaults:
+  source_pack: operator-supplied-assets
+  parser_bundle: mixed_document_v0
+  enabled: false
+
+textbooks:
+  - id: textbook:ostep
+    title: "Operating Systems: Three Easy Pieces"
+    authors: [Remzi H. Arpaci-Dusseau, Andrea C. Arpaci-Dusseau]
+    domain: operating_systems
+    enabled: true
+    access_basis: open
+    acquisition_hint: open_textbook_or_author_hosted
+    url: https://pages.cs.wisc.edu/~remzi/OSTEP/
+    notes: Prefer chapter-level open PDFs if the site exposes them and
+      host policy permits. Preserve source URL and access date.
+
+  - id: textbook:mit-6824-notes
+    title: "MIT 6.824 / 6.5840 Distributed Systems course material"
+    authors: [MIT CSAIL]
+    domain: distributed_systems
+    enabled: true
+    access_basis: open
+    acquisition_hint: official_course_notes_or_ocw
+    url: https://pdos.csail.mit.edu/6.824/
+    notes: Course pages and notes are useful open reference material.
+      Avoid mirroring large media unless explicitly needed.
+
+  - id: textbook:ddia
+    title: "Designing Data-Intensive Applications"
+    authors: [Martin Kleppmann]
+    domain: data_systems
+    enabled: false
+    access_basis: licensed_local
+    acquisition_hint: operator_supplied_local_file
+    notes: Add only an operator-supplied local copy or chapter excerpts
+      that are lawful to use for this research context.
+
+  - id: textbook:database-system-concepts
+    title: "Database System Concepts"
+    authors: [Abraham Silberschatz, Henry F. Korth, S. Sudarshan]
+    domain: databases
+    enabled: false
+    access_basis: mit_authenticated
+    acquisition_hint: mit_library_manual_chapter_or_ebook
+    notes: Queue a manual MIT Libraries lookup. Do not bulk-download an
+      ebook or scrape publisher-hosted chapters.
+
+  - id: textbook:computer-networking-top-down
+    title: "Computer Networking: A Top-Down Approach"
+    authors: [James F. Kurose, Keith W. Ross]
+    domain: networking
+    enabled: false
+    access_basis: mit_authenticated
+    acquisition_hint: mit_library_manual_chapter_or_ebook
+    notes: Queue a manual MIT Libraries lookup. Prefer specific chapters
+      or operator-supplied notes rather than whole-book automation.
+
+  - id: textbook:distributed-systems-van-steen-tanenbaum
+    title: "Distributed Systems"
+    authors: [Maarten van Steen, Andrew S. Tanenbaum]
+    domain: distributed_systems
+    enabled: false
+    access_basis: mit_authenticated
+    acquisition_hint: mit_library_manual_chapter_or_ebook
+    notes: Queue a manual MIT Libraries lookup or use an author-provided
+      open version if one is explicitly available and permitted.

@@ -1,0 +1,163 @@
+version: 1
+deployment: memex-sr
+
+purpose: >-
+  Decide how candidate reference material may enter the local full-text
+  cache. This policy is evaluated before any downloader runs. It keeps
+  network acquisition separate from deterministic OKG publish.
+
+principles:
+  - id: open_first
+    text: Prefer venue-native open PDFs, arXiv/OpenReview copies, author
+      copies, RFCs, OCW notes, and other lawful open sources before
+      authenticated publisher access.
+  - id: mit_access_is_operator_assisted
+    text: MIT subscription access may be used by eligible MIT users, but
+      not via bulk scripted proxy crawling. The automated lane may create
+      a queue of MIT-library/manual actions; a human operator retrieves
+      files through approved browser/library workflows and drops them into
+      the local asset directory with provenance.
+  - id: no_live_network_in_publish
+    text: Publish sources read only local manifests and cached assets.
+      They never authenticate to publishers or download files inside a
+      generation cycle.
+  - id: cache_and_checkpoint
+    text: Every fetched or supplied asset must have a stable local path,
+      content hash, access basis, acquisition method, and terminal state.
+  - id: textbooks_are_stricter
+    text: Textbooks and ebooks are never bulk-downloaded by automation.
+      Open textbooks may be fetched according to host policy. Licensed
+      ebooks, chapters, and scans enter only through operator-supplied or
+      library-request workflows.
+
+mit_library_context:
+  official_docs:
+    authenticate: https://libraries.mit.edu/research-support/connect/
+    licensed_use: https://libraries.mit.edu/scholarly/publishing/using-licensed-resources/
+    get_materials: https://libraries.mit.edu/research-support/get-materials-from-the-libraries/
+    interlibrary_borrowing: https://libraries.mit.edu/docs/ilb/
+  allowed_for_planner:
+    - construct_browser_action_links
+    - record_manual_retrieval_tasks
+    - record_local_files_after_operator_download
+    - request_missing_items_via_library_or_illiad
+  disallowed_for_planner:
+    - scripted_touchstone_login
+    - scripted_libproxy_bulk_download
+    - ebook_or_textbook_bulk_download
+    - redistribution_of_licensed_content
+
+access_bases:
+  open:
+    automated_download: true
+    requires_operator: false
+    description: Open-access or publisher-authorized public full text.
+  metadata_only:
+    automated_download: false
+    requires_operator: false
+    description: Landing page or identifier metadata; not full text.
+  mit_authenticated:
+    automated_download: false
+    requires_operator: true
+    description: Full text appears accessible only through MIT subscription
+      workflows. Queue a browser/manual task; do not run a scripted fetch.
+  licensed_local:
+    automated_download: false
+    requires_operator: true
+    description: A file the operator may lawfully use locally under MIT or
+      other license terms. It must be placed in operator_assets and recorded
+      with provenance before parsing.
+  operator_supplied:
+    automated_download: false
+    requires_operator: true
+    description: A collaborator-supplied local file or URL with explicit
+      permission/provenance.
+  denied:
+    automated_download: false
+    requires_operator: false
+    description: Do not acquire. Record the skipped/blocked reason.
+
+candidate_priority:
+  papers:
+    - local_operator_asset
+    - venue_native_open_pdf
+    - arxiv_pdf
+    - openreview_pdf
+    - author_or_project_pdf
+    - unpaywall_or_openalex_open_pdf
+    - mit_library_manual_pdf
+    - illiad_or_library_request
+    - metadata_only_landing_page
+  textbooks:
+    - open_textbook_or_author_hosted
+    - official_course_notes_or_ocw
+    - operator_supplied_local_file
+    - mit_library_manual_chapter_or_ebook
+    - physical_scan_or_library_request
+
+actions:
+  fetch_open:
+    terminal_state_on_success: fetched
+    required_fields: [source_pack, asset_id, url, local_path, content_hash, access_basis]
+  queue_mit_manual:
+    terminal_state_on_success: operator_supplied
+    required_fields: [source_pack, asset_id, source_url_or_doi, local_path, content_hash, operator, access_basis]
+    notes: Use MIT Libraries search, LibKey/Nomad, libproxy browser links,
+      or ILLiad as appropriate. Do not script the authenticated download.
+  queue_operator_asset:
+    terminal_state_on_success: operator_supplied
+    required_fields: [source_pack, asset_id, local_path, content_hash, operator, access_basis]
+  skip_metadata_only:
+    terminal_state_on_success: skipped_metadata_only
+  skip_denied:
+    terminal_state_on_success: skipped_denied
+
+publisher_hosts_manual_only:
+  - dl.acm.org
+  - ieeexplore.ieee.org
+  - link.springer.com
+  - www.sciencedirect.com
+  - onlinelibrary.wiley.com
+  - pubs.aip.org
+  - epubs.siam.org
+  - www.cambridge.org
+  - academic.oup.com
+
+open_pdf_host_hints:
+  - www.usenix.org
+  - www.vldb.org
+  - arxiv.org
+  - export.arxiv.org
+  - openreview.net
+  - proceedings.mlr.press
+  - www.rfc-editor.org
+
+manifest_contract:
+  generated_plan_path: deployments/memex-sr/manifests/acquisition_plan.json
+  acquired_manifest_path: deployments/memex-sr/manifests/acquired_assets.jsonl
+  cache_root: deployments/memex-sr/.cache/acquired
+  operator_asset_root: deployments/memex-sr/operator_assets
+  plan_record_required_fields:
+    - plan_id
+    - source_pack
+    - material_kind
+    - source_id
+    - title
+    - candidate_url
+    - host
+    - access_basis
+    - acquisition_action
+    - acquisition_state
+    - reason
+  acquired_record_required_fields:
+    - asset_id
+    - source_pack
+    - material_kind
+    - title
+    - local_path
+    - content_hash
+    - byte_count
+    - access_basis
+    - acquisition_method
+    - provenance_note
+    - parser_bundle
