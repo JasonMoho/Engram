@@ -50,10 +50,14 @@ Read in this order:
 3. [`docs/pre-full-text-readiness.md`](docs/pre-full-text-readiness.md)
    for current graph counts, known corpus gaps, and the gates before PDF
    acquisition.
-4. [`docs/source-acquisition.md`](docs/source-acquisition.md) for the
+4. [`spec/source-ingestion-proposal.md`](spec/source-ingestion-proposal.md)
+   for the source-ingestion proposal and implementation phases.
+5. [`spec/source-ingestion-tasks.md`](spec/source-ingestion-tasks.md)
+   for the concrete work plan and acceptance checks.
+6. [`docs/source-acquisition.md`](docs/source-acquisition.md) for the
    allowed acquisition lanes for open PDFs, MIT-authenticated material,
    textbooks, and operator-supplied local assets.
-5. [`spec/design.md`](spec/design.md) for the longer-term deployment
+7. [`spec/design.md`](spec/design.md) for the longer-term deployment
    architecture.
 
 ## Clean Local Bootstrap

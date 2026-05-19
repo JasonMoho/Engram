@@ -15,6 +15,11 @@ Planning artifacts live under [`spec/`](spec/):
 
 - [`proposal.md`](spec/proposal.md) explains why this deployment exists
   and what changes.
+- [`source-ingestion-proposal.md`](spec/source-ingestion-proposal.md)
+  is the focused proposal for paper/textbook/report/blog ingestion,
+  acquisition, parsing, and incremental execution.
+- [`source-ingestion-tasks.md`](spec/source-ingestion-tasks.md) tracks
+  the implementation checklist for that ingestion proposal.
 - [`design.md`](spec/design.md) defines the corpus, ontology,
   DBOS-aligned execution model, Engram tool contract, and Engram
   workspace indexer.
