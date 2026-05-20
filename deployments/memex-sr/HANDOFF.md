@@ -57,7 +57,9 @@ Read in this order:
 6. [`docs/source-acquisition.md`](docs/source-acquisition.md) for the
    allowed acquisition lanes for open PDFs, MIT-authenticated material,
    textbooks, and operator-supplied local assets.
-7. [`spec/design.md`](spec/design.md) for the longer-term deployment
+7. [`docs/chunky-deployment.md`](docs/chunky-deployment.md) for the
+   lower-friction CSAIL chunky login/bootstrap workflow.
+8. [`spec/design.md`](spec/design.md) for the longer-term deployment
    architecture.
 
 ## Clean Local Bootstrap
@@ -86,6 +88,16 @@ to check prerequisites without starting Postgres. If `uv` is missing,
 rerun with `--install-uv`. If Docker daemon access is not available,
 either ask an admin to add the user to the `docker` group or provide an
 existing Postgres DSN and rerun with `--skip-docker`.
+
+On `chunky.csail.mit.edu`, prefer:
+
+```bash
+tmux new -A -s memex-sr
+bash deployments/memex-sr/scripts/bootstrap_chunky.sh --install-uv
+```
+
+That wrapper refreshes Kerberos/AFS credentials only when needed,
+updates submodules, and then calls the normal local bootstrap.
 
 ## Manual Verification
 

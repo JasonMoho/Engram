@@ -48,6 +48,7 @@ sources:
         - deployments/memex-sr/spec/source-ingestion-proposal.md
         - deployments/memex-sr/spec/source-ingestion-tasks.md
         - deployments/memex-sr/docs/source-acquisition.md
+        - deployments/memex-sr/docs/chunky-deployment.md
         - deployments/memex-sr/seed_corpus/*.md
         - docs/okg-memex-sr.md
         - docs/okg-context-packet.md
@@ -76,6 +77,7 @@ sources:
           - deployments/memex-sr/spec/source-ingestion-proposal.md
           - deployments/memex-sr/spec/source-ingestion-tasks.md
           - deployments/memex-sr/docs/source-acquisition.md
+          - deployments/memex-sr/docs/chunky-deployment.md
           - deployments/memex-sr/seed_corpus/*.md
           - docs/okg-memex-sr.md
           - docs/okg-context-packet.md
