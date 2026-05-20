@@ -16,6 +16,9 @@ Environment:
   MEMEX_SR_OKG_DSN   Default:
                      postgres://postgres:okg@127.0.0.1:5433/engram_memex_sr_phase0
   MEMEX_SR_OKG_DB    Database name for the local Docker Postgres path.
+  MEMEX_SR_DOCKER_CONTEXT_DIR
+                     Optional local staging directory for the OKG Postgres
+                     Docker context. Defaults to /tmp on AFS checkouts.
   OKG_AGENT          Defaults to 1.
 EOF
 }
@@ -89,6 +92,27 @@ install_uv() {
   export PATH="$HOME/.local/bin:$PATH"
 }
 
+docker_compose_file() {
+  local source_dir="$OKG_DIR/ops/pg"
+
+  if [[ "$source_dir" != /afs/* && -z "${MEMEX_SR_DOCKER_CONTEXT_DIR:-}" ]]; then
+    printf '%s\n' "$source_dir/docker-compose.yaml"
+    return
+  fi
+
+  local stage_dir="${MEMEX_SR_DOCKER_CONTEXT_DIR:-/tmp/memex-sr-${USER:-$(id -u)}/okg-pg}"
+  local stage_tmp="$stage_dir.tmp.$$"
+
+  echo "Staging OKG Postgres Docker context outside AFS:" >&2
+  echo "  $stage_dir" >&2
+  rm -rf "$stage_tmp"
+  mkdir -p "$(dirname "$stage_dir")"
+  cp -R "$source_dir" "$stage_tmp"
+  rm -rf "$stage_dir"
+  mv "$stage_tmp" "$stage_dir"
+  printf '%s\n' "$stage_dir/docker-compose.yaml"
+}
+
 if [[ ! -d "$OKG_DIR/src/okg" ]]; then
   die "OKG submodule is missing. Run: git submodule update --init --recursive"
 fi
@@ -152,12 +176,16 @@ EOF
   fi
 
   if [[ "$CHECK_ONLY" -eq 1 ]]; then
+    if [[ "$OKG_DIR/ops/pg" == /afs/* ]]; then
+      echo "Preflight note: Docker context will be staged under /tmp to avoid AFS bind-mount permissions."
+    fi
     echo "Preflight checks passed."
     exit 0
   fi
 
   echo "Starting OKG local Postgres..."
-  docker compose -f "$OKG_DIR/ops/pg/docker-compose.yaml" up -d --build
+  COMPOSE_FILE="$(docker_compose_file)"
+  docker compose --project-name pg -f "$COMPOSE_FILE" up -d --build
 
   echo "Waiting for Postgres..."
   for _ in {1..60}; do
