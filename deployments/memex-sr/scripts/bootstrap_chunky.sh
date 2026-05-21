@@ -12,6 +12,8 @@ Options:
   --install-uv    Install uv into ~/.local/bin if uv is missing.
   --skip-auth     Do not run chunky_auth.sh first.
   --skip-docker   Use MEMEX_SR_OKG_DSN instead of local Docker Postgres.
+  --skip-submodules
+                  Do not run git submodule update before bootstrapping.
   -h, --help      Show this help.
 
 Environment:
@@ -25,6 +27,7 @@ CHECK_ONLY=0
 INSTALL_UV=0
 SKIP_AUTH=0
 SKIP_DOCKER=0
+SKIP_SUBMODULES=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -39,6 +42,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-docker)
       SKIP_DOCKER=1
+      ;;
+    --skip-submodules)
+      SKIP_SUBMODULES=1
       ;;
     -h|--help)
       usage
@@ -77,8 +83,10 @@ tokens expire during long downloads/parses.
 EOF
 fi
 
-echo "Updating submodules..."
-git -C "$REPO_ROOT" submodule update --init --recursive
+if [[ "$SKIP_SUBMODULES" -eq 0 ]]; then
+  echo "Updating submodules..."
+  git -C "$REPO_ROOT" submodule update --init --recursive
+fi
 
 bootstrap_args=()
 if [[ "$CHECK_ONLY" -eq 1 ]]; then

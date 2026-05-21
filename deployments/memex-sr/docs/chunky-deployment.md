@@ -54,24 +54,49 @@ tmux new -A -s memex-sr
 This keeps long bootstrap, parse, and download jobs alive if the laptop
 disconnects.
 
-## Prefer Local Disk For The Checkout
+## Fast Path
 
-AFS home directories need Kerberos/AFS tokens for writes. Long-running
-jobs are less fragile from local disk:
+After login, use one command from any Engram checkout:
 
 ```bash
-mkdir -p /data1/"$USER"
-cd /data1/"$USER"
-git clone --recurse-submodules https://github.com/mit-nms/Engram.git
-cd Engram
+bash deployments/memex-sr/scripts/deploy_chunky.sh --install-uv
 ```
 
-If `/data1/$USER` is not writable, use `~/src/Engram`, but expect to
-refresh tokens after login.
+The deploy wrapper:
 
-For the current development branch:
+- moves work to `/data1/$USER/projects/mit/Engram` when needed;
+- clones Engram if the local-disk checkout does not exist;
+- fetches `fork/codex/systems-researcher-okg`;
+- updates submodules;
+- refreshes Kerberos/AFS credentials;
+- bootstraps Postgres/OKG;
+- migrates, loads the catalog, ingests, publishes, and prints status;
+- generates `deployments/memex-sr/reports/cloudcast-ab/context-packet-chunky.md`.
+
+Preflight only:
 
 ```bash
+bash deployments/memex-sr/scripts/deploy_chunky.sh --check-only
+```
+
+If you need to use an existing Postgres instead of Docker:
+
+```bash
+MEMEX_SR_OKG_DSN=postgres://USER:PASS@HOST:PORT/DB \
+  bash deployments/memex-sr/scripts/deploy_chunky.sh --skip-docker
+```
+
+## Manual Local-Disk Checkout
+
+AFS home directories need Kerberos/AFS tokens for writes. Long-running
+jobs are less fragile from local disk. The fast path does this
+automatically, but the manual commands are:
+
+```bash
+mkdir -p /data1/"$USER"/projects/mit
+cd /data1/"$USER"/projects/mit
+git clone --recurse-submodules https://github.com/mit-nms/Engram.git
+cd Engram
 git remote add fork https://github.com/JasonMoho/Engram.git 2>/dev/null || true
 git fetch fork
 git switch codex/systems-researcher-okg
@@ -79,22 +104,11 @@ git pull --ff-only fork codex/systems-researcher-okg
 git submodule update --init --recursive
 ```
 
-## One Command On Chunky
-
-From the Engram repo root:
+Then run the lower-level bootstrap:
 
 ```bash
 bash deployments/memex-sr/scripts/bootstrap_chunky.sh --install-uv
 ```
-
-What it does:
-
-- checks Kerberos with `klist`;
-- runs `kinit` only when no ticket is present;
-- runs `aklog csail.mit.edu` when available;
-- verifies AFS home write access when `$HOME` is under `/afs`;
-- updates submodules;
-- calls `bootstrap_local.sh` to run the normal Memex-SR bootstrap.
 
 Preflight only:
 
@@ -112,10 +126,8 @@ logging out/back in.
 ```bash
 ssh chunky
 tmux new -A -s memex-sr
-cd /data1/"$USER"/Engram
-git pull --ff-only fork codex/systems-researcher-okg
-git submodule update --init --recursive
-bash deployments/memex-sr/scripts/bootstrap_chunky.sh
+cd /data1/"$USER"/projects/mit/Engram
+bash deployments/memex-sr/scripts/deploy_chunky.sh
 ```
 
 If credentials have expired, the wrapper prompts for `kinit` and refreshes

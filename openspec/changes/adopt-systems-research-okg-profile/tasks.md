@@ -49,3 +49,18 @@
   Verification: `HANDOFF.md` includes `okg migrate`, `okg catalog
   load --apply`, `okg ingest`, `okg doctor`, `okg metrics`, and MCP
   `generate_context_packet` checks.
+
+## 5. Chunky Deployment Simplification
+
+- [x] 5.1 Add a one-command chunky deploy wrapper. Verification:
+  `deployments/memex-sr/scripts/deploy_chunky.sh --help` documents
+  checkout relocation, branch update, auth refresh, bootstrap, publish,
+  and Cloudcast packet generation.
+- [x] 5.2 Keep lower-level bootstrap reusable. Verification:
+  `bootstrap_chunky.sh` supports `--skip-submodules`, allowing the
+  deploy wrapper to avoid duplicate submodule updates after it already
+  updated the checkout.
+- [x] 5.3 Update collaborator docs. Verification:
+  `deployments/memex-sr/docs/chunky-deployment.md` starts with the
+  single `deploy_chunky.sh --install-uv` path and keeps manual commands
+  only as a fallback.

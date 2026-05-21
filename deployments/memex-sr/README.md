@@ -95,8 +95,9 @@ Runtime artifacts live beside the spec:
 - [`docs/source-sampling.md`](docs/source-sampling.md) explains the
   source sampler and coverage outputs.
 - [`docs/chunky-deployment.md`](docs/chunky-deployment.md) gives the
-  lower-friction CSAIL chunky workflow, including SSH reuse,
-  Kerberos/AFS refresh, tmux, and the chunky bootstrap wrapper.
+  one-command CSAIL chunky workflow, including checkout relocation,
+  branch update, Kerberos/AFS refresh, bootstrap, publish, and
+  Cloudcast packet generation.
 - [`docs/pre-full-text-readiness.md`](docs/pre-full-text-readiness.md)
   records the current generation-5 local cut, local test loop,
   pre-full-text gates, and repo-readiness checklist.
