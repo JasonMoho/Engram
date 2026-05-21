@@ -133,6 +133,15 @@ die() {
   exit 1
 }
 
+refresh_user_path() {
+  if [[ -f "$HOME/.local/bin/env" ]]; then
+    # shellcheck disable=SC1091
+    source "$HOME/.local/bin/env"
+  else
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+}
+
 remote_exists() {
   git -C "$1" remote get-url "$2" >/dev/null 2>&1
 }
@@ -222,6 +231,8 @@ bash "$CURRENT_ROOT/deployments/memex-sr/scripts/bootstrap_chunky.sh" "${bootstr
 if [[ "$CHECK_ONLY" -eq 1 || "$GENERATE_PACKET" -eq 0 ]]; then
   exit 0
 fi
+
+refresh_user_path
 
 packet_dir="$CURRENT_ROOT/deployments/memex-sr/reports/cloudcast-ab"
 packet_path="$packet_dir/context-packet-chunky.md"
