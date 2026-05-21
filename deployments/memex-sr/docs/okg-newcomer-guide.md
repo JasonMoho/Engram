@@ -49,7 +49,7 @@ The core terms:
 
 | Term | Meaning |
 | --- | --- |
-| Source | Code or a manifest that emits graph facts. Examples: `paper-cut`, `doc-corpus`. |
+| Source | Code or a manifest that emits graph facts. Examples: `paper_cut`, `doc_corpus`. |
 | Node | An entity in the graph, such as a `paper`, `person`, `venue`, or `document_chunk`. |
 | Edge | A relationship, such as `paper -> authored_by -> person`. |
 | Ontology | The allowed node types and required attributes. In this deployment it lives under `schemas/`. |
@@ -87,7 +87,7 @@ The Engram repo owns the deployment-specific pieces:
 | `docs/` | Operator and collaborator guidance. |
 | `spec/` | Proposal, design, requirements, and task tracking. |
 
-The `doc-corpus` source intentionally indexes stable design/context
+The `doc_corpus` source intentionally indexes stable design/context
 documents, not live-count handoff docs. This avoids a self-referential
 loop where updating "latest generation" prose creates new graph facts on
 every publish.

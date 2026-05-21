@@ -1,0 +1,152 @@
+# Invariants for the systems-research profile.
+#
+# Audited from the Engram team's memex-sr deployment (commit history
+# and HANDOFF.md's "Immediate Next Work" section) for the
+# memex-sr-archetype shape. Severities + thresholds are tuned for the
+# archetype (NOT Engram's personalized state); the consuming
+# deployment overrides specific thresholds in its own invariants
+# bundle. Per the profile's Requirement: Profile Excludes
+# Engram-Specific Tuning.
+#
+# A fresh `okg init --profile systems-research` deployment with no
+# papers yet may see these fire YELLOW on the first publish until
+# sources have produced their initial rows; operators downgrade or
+# suppress until the first ingest completes.
+#
+# Threshold overrides: each `min_expected` / `max_expected` value is
+# a default operators MAY override in their deployment's
+# invariants.yaml. The Engram team's memex-sr currently runs with
+# `paper_count_floor: 4000` (their verified cut has 4,782); we ship
+# 1000 as the archetype default — a reasonable lower bound any
+# systems-research deployment should clear within a few publish
+# cycles.
+
+invariants:
+  - name: systems_research_core_subtypes_present
+    severity: error
+    scope: cross
+    timeout_ms: 5000
+    description: >-
+      Required systems-research subtypes must have at least one live
+      row after the deployment's first publish completes. A missing
+      entry here signals a source-coverage regression (paper sources
+      failed to emit, design-knowledge nodes weren't authored, etc).
+      Tolerant of cold-start: the very first publish on a fresh
+      deployment may fire YELLOW until sources have produced their
+      initial rows; operators downgrade / suppress until the bootstrap
+      ingest completes.
+    sql: |
+      WITH required(subtype) AS (
+        VALUES
+          ('paper'),
+          ('project')
+      ),
+      counts AS (
+        SELECT subtype, count(*) AS n
+          FROM okg.nodes_live
+         WHERE valid_to_gen IS NULL
+         GROUP BY subtype
+      )
+      SELECT r.subtype, coalesce(c.n, 0) AS live_count
+        FROM required r
+        LEFT JOIN counts c USING (subtype)
+       WHERE coalesce(c.n, 0) = 0
+
+  - name: systems_research_paper_count_floor
+    severity: warn
+    scope: cross
+    timeout_ms: 5000
+    description: >-
+      The scholarly layer should retain a meaningful paper cut for
+      systems-research context-packet generation; a sudden drop below
+      `min_expected` indicates the paper source failed silently or
+      the manifest was reduced unintentionally. Memex-sr's verified
+      cut carries ~4,782 papers; the profile's 1,000 default is the
+      archetype floor any systems-research deployment should clear.
+      Operators override this in their deployment's invariants.yaml
+      when their corpus has a different expected scale.
+    sql: |
+      WITH c AS (
+        SELECT count(*) AS n
+          FROM okg.nodes_live
+         WHERE valid_to_gen IS NULL
+           AND subtype = 'paper'
+      )
+      SELECT 'paper' AS subtype, n AS live_count, 1000 AS min_expected
+        FROM c
+       WHERE n < 1000
+
+  - name: systems_research_source_sync_dlq_zero
+    severity: error
+    scope: cross
+    timeout_ms: 5000
+    description: >-
+      Memex-sr's discipline is DLQ=0 — any source-sync entry that
+      lands in the dead-letter queue signals a partial-publish state
+      that needs operator attention before the next publish.
+      Archetype-wide invariant: every systems-research deployment
+      should clear this gate before declaring the publish cycle
+      complete.
+    sql: |
+      SELECT source_name, count(*) AS dlq_count
+        FROM okg.source_sync_dlq
+       GROUP BY source_name
+      HAVING count(*) > 0
+
+  - name: systems_research_design_knowledge_classified
+    severity: warn
+    scope: cross
+    timeout_ms: 5000
+    description: >-
+      Design-knowledge nodes (DesignPrinciple, Mechanism, TradeOff,
+      AntiPattern) authored by the operator should carry a non-empty
+      `domain` or `mechanism_kind` enum value — these drive the
+      filtering surfaces that downstream context-packet generation
+      depends on. A node with an empty classification field tends to
+      surface in the wrong neighborhoods. Tolerant of cold-start: a
+      fresh deployment with zero design-knowledge nodes obviously
+      can't fail this; the invariant only fires once nodes exist
+      and one carries an empty classification.
+    sql: |
+      WITH missing AS (
+        SELECT n.node_id, n.subtype
+          FROM okg.nodes_live n
+         WHERE n.valid_to_gen IS NULL
+           AND n.subtype IN ('design_principle', 'mechanism',
+                             'trade_off', 'anti_pattern')
+           AND (
+             (n.subtype = 'design_principle'
+              AND (n.attrs->>'domain' IS NULL
+                   OR n.attrs->>'domain' = ''))
+             OR (n.subtype = 'mechanism'
+                 AND (n.attrs->>'mechanism_kind' IS NULL
+                      OR n.attrs->>'mechanism_kind' = ''))
+           )
+      )
+      SELECT subtype, count(*) AS missing_classification
+        FROM missing
+       GROUP BY subtype
+
+  - name: systems_research_document_asset_classification_required
+    severity: warn
+    scope: cross
+    timeout_ms: 5000
+    description: >-
+      Per memex-sr's HANDOFF.md "Immediate Next Work" item 3: every
+      document_asset node should carry an explicit `access_basis`
+      classification (verified-pdf, landing-only, inferred, publisher-
+      only, blocked, or operator-supplied). An unclassified asset
+      signals that the asset-URL audit hasn't run yet. Operators
+      with no document_assets yet see zero rows (passes trivially).
+    sql: |
+      WITH unclassified AS (
+        SELECT node_id
+          FROM okg.nodes_live
+         WHERE valid_to_gen IS NULL
+           AND subtype = 'document_asset'
+           AND (attrs->>'access_basis' IS NULL
+                OR attrs->>'access_basis' = '')
+      )
+      SELECT count(*) AS unclassified_assets
+        FROM unclassified
+       HAVING count(*) > 0

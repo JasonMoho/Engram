@@ -111,7 +111,7 @@ uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg catalog load \
 uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg ingest \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
-  --include paper-cut \
+  --include paper_cut \
   --mode scope_complete \
   --inline \
   --progress \

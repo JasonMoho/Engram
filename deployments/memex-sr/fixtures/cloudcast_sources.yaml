@@ -1,0 +1,376 @@
+version: 1
+deployment: memex-sr
+source_pack: cloudcast-actionable-v0
+review_state: reviewed_seed_v0
+
+description: >-
+  Reviewed seed manifest for making the Cloudcast Memex-SR slice
+  actionable. This is an acquisition and extraction target list, not a
+  permission grant. The acquisition planner decides whether each source
+  is open, local, MIT-manual, metadata-only, or blocked.
+
+default_topic_slugs:
+  - cloudcast
+  - multicast
+  - routing
+  - traffic-engineering
+  - cost-aware-routing
+  - steiner-tree
+  - wide-area-transfer
+
+extraction_target_vocabulary:
+  - problem_objective
+  - constraints
+  - decision_variables
+  - algorithm_family
+  - decomposition_strategy
+  - approximation_strategy
+  - data_structures
+  - implementation_checks
+  - failure_modes
+  - transfer_to_cloudcast
+
+sources:
+  - id: cloudcast:fair-task-prompt
+    title: Cloudcast fair direction prompt
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/deepagents_files/task_prompt_direction.txt
+    holdout: false
+    transfer_to_cloudcast: benchmark_contract
+    extraction_targets: [problem_objective, constraints, decision_variables, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: cloudcast:simulator
+    title: Cloudcast simulator semantics
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/simulator.py
+    holdout: false
+    transfer_to_cloudcast: evaluator_semantics
+    extraction_targets: [constraints, implementation_checks, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: cloudcast:evaluator
+    title: Cloudcast evaluator and validation logic
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/evaluator.py
+    holdout: false
+    transfer_to_cloudcast: evaluator_semantics
+    extraction_targets: [problem_objective, constraints, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: cloudcast:initial-program
+    title: Cloudcast starter implementation
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/initial_program.py
+    holdout: false
+    transfer_to_cloudcast: baseline_algorithm
+    extraction_targets: [algorithm_family, failure_modes, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: cloudcast:optimal-holdout
+    title: Cloudcast local oracle solution
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/optimal.py
+    holdout: true
+    transfer_to_cloudcast: holdout_oracle
+    extraction_targets: []
+    review_state: holdout_only
+
+  - id: cloudcast:optimal-prompt-holdout
+    title: Cloudcast prompt with optimal solution
+    category: benchmark
+    tier: 0
+    access_basis: operator_supplied
+    local_path: SystemBench/ADRS/cloudcast/deepagents_files/task_prompt_direction_with_optimal.txt
+    holdout: true
+    transfer_to_cloudcast: holdout_oracle
+    extraction_targets: []
+    review_state: holdout_only
+
+  - id: systems:skyplane
+    title: "Skyplane: Optimizing Transfer Cost and Throughput Using Cloud-Aware Overlays"
+    category: direct_system
+    tier: 1
+    access_basis: open
+    source_url: https://www.usenix.org/conference/nsdi23/presentation/jain
+    holdout: false
+    transfer_to_cloudcast: cloud-aware overlay routing and cost/throughput trade-offs
+    extraction_targets: [problem_objective, constraints, algorithm_family, implementation_checks, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:cloudmpcast
+    title: CloudMPCast
+    category: direct_system
+    tier: 1
+    access_basis: metadata_only
+    source_url: https://dl.acm.org/
+    locator_query: CloudMPCast multicast cloud data transfer
+    holdout: false
+    transfer_to_cloudcast: direct multi-cloud multicast comparator
+    extraction_targets: [problem_objective, constraints, algorithm_family, transfer_to_cloudcast]
+    review_state: reviewed_seed_v0
+
+  - id: systems:spanstore
+    title: "SPANStore: Cost-Effective Geo-Replicated Storage Spanning Multiple Cloud Services"
+    category: direct_system
+    tier: 1
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1145/2517349.2522710
+    holdout: false
+    transfer_to_cloudcast: multi-cloud placement and cost model
+    extraction_targets: [problem_objective, constraints, algorithm_family, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:b4
+    title: "B4: Experience with a Globally-Deployed Software Defined WAN"
+    category: direct_system
+    tier: 1
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1145/2486001.2486019
+    holdout: false
+    transfer_to_cloudcast: wide-area traffic engineering and capacity allocation
+    extraction_targets: [constraints, algorithm_family, decomposition_strategy, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: systems:swan
+    title: Achieving High Utilization with Software-Driven WAN
+    category: direct_system
+    tier: 1
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1145/2486001.2486012
+    holdout: false
+    transfer_to_cloudcast: WAN traffic engineering and bandwidth scheduling
+    extraction_targets: [constraints, algorithm_family, decomposition_strategy, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:ron
+    title: Resilient Overlay Networks
+    category: direct_system
+    tier: 1
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1145/502034.502048
+    holdout: false
+    transfer_to_cloudcast: overlay path selection under changing wide-area conditions
+    extraction_targets: [algorithm_family, failure_modes, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: systems:end-system-multicast
+    title: End System Multicast
+    category: direct_system
+    tier: 1
+    access_basis: metadata_only
+    source_url: https://www.cs.cmu.edu/~narada/
+    holdout: false
+    transfer_to_cloudcast: application-level multicast tree construction
+    extraction_targets: [algorithm_family, data_structures, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:splitstream
+    title: "SplitStream: High-Bandwidth Multicast in Cooperative Environments"
+    category: direct_system
+    tier: 1
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1145/945445.945474
+    holdout: false
+    transfer_to_cloudcast: striping and path diversity for multicast
+    extraction_targets: [algorithm_family, decomposition_strategy, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:bullet
+    title: "Bullet: High Bandwidth Data Dissemination Using an Overlay Mesh"
+    category: direct_system
+    tier: 1
+    access_basis: open
+    source_url: https://www.comp.nus.edu.sg/~bleong/p2pft/related/kostic03bullet.pdf
+    holdout: false
+    transfer_to_cloudcast: high-bandwidth dissemination and mesh/tree trade-offs
+    extraction_targets: [algorithm_family, data_structures, implementation_checks, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:bittorrent
+    title: Incentives Build Robustness in BitTorrent
+    category: direct_system
+    tier: 1
+    access_basis: open
+    source_url: https://bittorrent.org/bittorrentecon.pdf
+    holdout: false
+    transfer_to_cloudcast: chunked dissemination and peer-assisted scheduling analogies
+    extraction_targets: [algorithm_family, data_structures, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: systems:kraken
+    title: "Kraken: Leveraging Live Traffic Tests to Identify and Resolve Resource Utilization Bottlenecks in Large Scale Internet Services"
+    category: direct_system
+    tier: 1
+    access_basis: metadata_only
+    source_url: https://www.usenix.org/
+    locator_query: Kraken large scale distribution systems paper multicast
+    holdout: false
+    transfer_to_cloudcast: large-scale dissemination implementation reference
+    extraction_targets: [implementation_checks, data_structures, failure_modes]
+    review_state: needs_locator_review
+
+  - id: systems:netstitcher
+    title: "NetStitcher: Extracting Network Detections from Packet Traces"
+    category: direct_system
+    tier: 1
+    access_basis: metadata_only
+    source_url: https://dl.acm.org/
+    locator_query: NetStitcher inter datacenter transfers cloud scheduling
+    holdout: false
+    transfer_to_cloudcast: inter-datacenter scheduling comparator candidate
+    extraction_targets: [algorithm_family, constraints, failure_modes]
+    review_state: needs_locator_review
+
+  - id: algorithms:directed-steiner-charikar
+    title: Approximation Algorithms for Directed Steiner Problems
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1137/S0097539795287930
+    holdout: false
+    transfer_to_cloudcast: directed multicast tree approximation foundation
+    extraction_targets: [algorithm_family, approximation_strategy, constraints, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: algorithms:steiner-tree-survey
+    title: Steiner Tree Problems in Computer Communication Networks
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: mit_authenticated
+    source_url: https://doi.org/10.1002/net.3230010302
+    holdout: false
+    transfer_to_cloudcast: tree sharing and multicast network design background
+    extraction_targets: [algorithm_family, approximation_strategy, transfer_to_cloudcast]
+    review_state: reviewed_seed_v0
+
+  - id: algorithms:network-flows-book
+    title: "Network Flows: Theory, Algorithms, and Applications"
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: licensed_local
+    source_url: https://mitpress.mit.edu/9780262513296/network-flows/
+    holdout: false
+    transfer_to_cloudcast: min-cost flow and multi-commodity flow modeling reference
+    extraction_targets: [problem_objective, constraints, decision_variables, algorithm_family]
+    review_state: reviewed_seed_v0
+
+  - id: algorithms:multicommodity-flow-survey
+    title: Multicommodity Network Flows
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: metadata_only
+    source_url: https://doi.org/10.1007/BFb0120910
+    holdout: false
+    transfer_to_cloudcast: path-based formulations and capacity constraints
+    extraction_targets: [decision_variables, constraints, decomposition_strategy, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: algorithms:column-generation
+    title: Column Generation
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: open
+    source_url: https://optimization.cbe.cornell.edu/index.php?title=Column_generation_algorithms
+    holdout: false
+    transfer_to_cloudcast: path generation and restricted master formulations
+    extraction_targets: [decomposition_strategy, decision_variables, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: algorithms:benders-decomposition
+    title: Generalized Benders Decomposition
+    category: algorithmic_foundation
+    tier: 2
+    access_basis: open
+    source_url: https://optimization.cbe.cornell.edu/index.php?title=Generalized_Benders_decomposition_%28GBD%29
+    holdout: false
+    transfer_to_cloudcast: decomposition strategy for mixed-integer routing models
+    extraction_targets: [decomposition_strategy, constraints, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: implementation:pulp
+    title: PuLP Optimization Modeling Documentation
+    category: implementation_guidance
+    tier: 3
+    access_basis: open
+    source_url: https://coin-or.github.io/pulp/
+    holdout: false
+    transfer_to_cloudcast: tractable MILP modeling in the benchmark environment
+    extraction_targets: [implementation_checks, decision_variables, constraints]
+    review_state: reviewed_seed_v0
+
+  - id: implementation:networkx-shortest-paths
+    title: NetworkX Shortest Paths Documentation
+    category: implementation_guidance
+    tier: 3
+    access_basis: open
+    source_url: https://networkx.org/documentation/stable/reference/algorithms/shortest_paths.html
+    holdout: false
+    transfer_to_cloudcast: path precomputation and fallback route construction
+    extraction_targets: [data_structures, implementation_checks, algorithm_family]
+    review_state: reviewed_seed_v0
+
+  - id: implementation:or-tools-min-cost-flow
+    title: OR-Tools Minimum Cost Flow Documentation
+    category: implementation_guidance
+    tier: 3
+    access_basis: open
+    source_url: https://developers.google.com/optimization/flow/mincostflow
+    holdout: false
+    transfer_to_cloudcast: min-cost flow modeling patterns
+    extraction_targets: [decision_variables, constraints, implementation_checks]
+    review_state: reviewed_seed_v0
+
+  - id: implementation:scipbook
+    title: Mathematical Optimization with SCIP
+    category: implementation_guidance
+    tier: 3
+    access_basis: open
+    source_url: https://scipbook.readthedocs.io/
+    holdout: false
+    transfer_to_cloudcast: integer programming modeling and solver practice
+    extraction_targets: [decision_variables, constraints, implementation_checks, failure_modes]
+    review_state: reviewed_seed_v0
+
+  - id: cloud-economics:aws-data-transfer
+    title: AWS EC2 On-Demand Pricing - Data Transfer
+    category: cloud_economics
+    tier: 4
+    access_basis: open
+    source_url: https://aws.amazon.com/ec2/pricing/on-demand/#Data_Transfer
+    holdout: false
+    transfer_to_cloudcast: cloud egress price semantics
+    extraction_targets: [problem_objective, constraints, transfer_to_cloudcast]
+    review_state: reviewed_seed_v0
+
+  - id: cloud-economics:gcp-network-pricing
+    title: Google Cloud VPC Network Pricing
+    category: cloud_economics
+    tier: 4
+    access_basis: open
+    source_url: https://cloud.google.com/vpc/network-pricing
+    holdout: false
+    transfer_to_cloudcast: cloud egress price semantics
+    extraction_targets: [problem_objective, constraints, transfer_to_cloudcast]
+    review_state: reviewed_seed_v0
+
+  - id: cloud-economics:azure-bandwidth
+    title: Azure Bandwidth Pricing
+    category: cloud_economics
+    tier: 4
+    access_basis: open
+    source_url: https://azure.microsoft.com/en-us/pricing/details/bandwidth/
+    holdout: false
+    transfer_to_cloudcast: cloud egress price semantics
+    extraction_targets: [problem_objective, constraints, transfer_to_cloudcast]
+    review_state: reviewed_seed_v0

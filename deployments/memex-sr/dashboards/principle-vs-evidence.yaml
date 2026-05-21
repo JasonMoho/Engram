@@ -1,0 +1,127 @@
+# Principle-vs-evidence panel for systems-research deployments.
+#
+# Surfaces the systems_research module's design-knowledge subtypes
+# alongside their evidence trails — the panel a systems-researcher
+# agent uses to verify "what design principles are codified, and
+# which ones have empirical backing?".
+#
+# Pairs with `scholarly-coverage.yaml`: that dashboard shows the
+# literature substrate; this one shows the curated design knowledge
+# layered on top.
+
+name: principle-vs-evidence
+title: Design Knowledge vs Evidence
+description: |
+  Per-subtype counts for systems_research design knowledge, plus the
+  cross-subtype edges that connect principles to mechanisms, mechanisms
+  to papers, and anti-patterns to their mitigations.
+
+panels:
+  - id: design_knowledge_counts
+    title: Live design-knowledge counts
+    kind: table
+    description: |
+      How many DesignPrinciple, Mechanism, TradeOff, and AntiPattern
+      nodes does the deployment carry today? A zero-row entry on a
+      mature deployment is a curation gap.
+    sql: |
+      WITH required(subtype) AS (
+        VALUES
+          ('design_principle'),
+          ('mechanism'),
+          ('trade_off'),
+          ('anti_pattern')
+      )
+      SELECT r.subtype,
+             coalesce(count(n.node_id), 0) AS live_count
+        FROM required r
+        LEFT JOIN okg.nodes_live n
+          ON n.subtype = r.subtype
+         AND n.valid_to_gen IS NULL
+       GROUP BY r.subtype
+       ORDER BY r.subtype
+
+  - id: principle_evidence_links
+    title: Principles with evidence (via emerged_from)
+    kind: table
+    description: |
+      Which DesignPrinciples carry an `emerged_from` edge to a Paper?
+      A principle without any source citation is harder to defend in
+      context-packet generation; this panel surfaces the gap.
+    sql: |
+      WITH principles AS (
+        SELECT n.node_id, n.attrs->>'statement' AS statement
+          FROM okg.nodes_live n
+         WHERE n.valid_to_gen IS NULL
+           AND n.subtype = 'design_principle'
+      ),
+      cited AS (
+        SELECT DISTINCT e.src AS principle_id
+          FROM okg.edges_live e
+         WHERE e.valid_to_gen IS NULL
+           AND e.edge_type = 'emerged_from'
+      )
+      SELECT p.node_id,
+             p.statement,
+             (p.node_id IN (SELECT principle_id FROM cited))
+               AS has_citation
+        FROM principles p
+       ORDER BY has_citation, p.statement
+       LIMIT 50
+
+  - id: mechanism_citation_coverage
+    title: Mechanisms with paper citations
+    kind: table
+    description: |
+      Which Mechanisms carry a `cited_in` edge to a Paper? Drives
+      "show me the canonical reference for this mechanism" queries
+      in context-packet generation.
+    sql: |
+      WITH mechanisms AS (
+        SELECT n.node_id, n.attrs->>'name' AS name
+          FROM okg.nodes_live n
+         WHERE n.valid_to_gen IS NULL
+           AND n.subtype = 'mechanism'
+      ),
+      cited AS (
+        SELECT DISTINCT e.src AS mechanism_id
+          FROM okg.edges_live e
+         WHERE e.valid_to_gen IS NULL
+           AND e.edge_type = 'cited_in'
+      )
+      SELECT m.node_id,
+             m.name,
+             (m.node_id IN (SELECT mechanism_id FROM cited))
+               AS has_citation
+        FROM mechanisms m
+       ORDER BY has_citation, m.name
+       LIMIT 50
+
+  - id: anti_pattern_mitigation_links
+    title: Anti-patterns with stated mitigations
+    kind: table
+    description: |
+      Which AntiPatterns carry a `mitigated_by` edge to a Mechanism?
+      An anti-pattern without a mitigation is half a story; this
+      panel surfaces the gap so the operator can author the
+      mitigation pair.
+    sql: |
+      WITH ap AS (
+        SELECT n.node_id, n.attrs->>'approach' AS approach
+          FROM okg.nodes_live n
+         WHERE n.valid_to_gen IS NULL
+           AND n.subtype = 'anti_pattern'
+      ),
+      mitigated AS (
+        SELECT DISTINCT e.src AS ap_id
+          FROM okg.edges_live e
+         WHERE e.valid_to_gen IS NULL
+           AND e.edge_type = 'mitigated_by'
+      )
+      SELECT ap.node_id,
+             ap.approach,
+             (ap.node_id IN (SELECT ap_id FROM mitigated))
+               AS has_mitigation
+        FROM ap
+       ORDER BY has_mitigation, ap.approach
+       LIMIT 50

@@ -129,7 +129,7 @@ OKG_DEPLOYMENTS_DIR="$OKG_DEPLOYMENTS_DIR" \
 external/okg/.venv/bin/okg ingest \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
-  --include paper-cut \
+  --include paper_cut \
   --mode scope_complete \
   --progress \
   --json
@@ -167,7 +167,7 @@ OKG_DEPLOYMENTS_DIR="$OKG_DEPLOYMENTS_DIR" \
 external/okg/.venv/bin/okg ingest \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
-  --include paper-cut \
+  --include paper_cut \
   --mode scope_complete \
   --no-publish \
   --json

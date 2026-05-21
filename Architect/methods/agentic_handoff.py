@@ -62,6 +62,7 @@ class AgenticHandoff(OptimizationMethod):
         enable_continue_message: bool = False,
         early_stop_patience: int = 10,
         reasoning_effort: str = "xhigh",
+        model_label: str | None = None,
         **kwargs,
     ):
         """Initialize the handoff optimizer.
@@ -75,6 +76,7 @@ class AgenticHandoff(OptimizationMethod):
             enable_continue_message: Whether to add continue messages automatically instead of waiting for natural completion
             early_stop_patience: Number of iterations without improvement before early stopping (only used when enable_continue_message=True)
             reasoning_effort: Reasoning effort level for gpt-5.2 models (default "xhigh")
+            model_label: Filesystem-safe label for result artifacts when the runtime model contains path separators
             *args, **kwargs: Passed to OptimizationMethod
         """
         super().__init__(*args, **kwargs)
@@ -98,6 +100,8 @@ class AgenticHandoff(OptimizationMethod):
         self.enable_continue_message = enable_continue_message
         self.early_stop_patience = early_stop_patience
         self.reasoning_effort = reasoning_effort
+        self.runtime_model_name = self.model if isinstance(self.model, str) else getattr(self, 'model_name_str', str(self.model))
+        self.model_name_str = model_label or self.runtime_model_name
         self.current_agent_number = 0
         self.experiment_counter = 0  # Reset per agent
 
@@ -192,20 +196,26 @@ class AgenticHandoff(OptimizationMethod):
 
     def build_agent(self) -> None:
         """Build a fresh agent for the current handoff iteration."""
-        # Store original model name for filename construction
-        self.model_name_str = self.model if isinstance(self.model, str) else getattr(self, 'model_name_str', 'unknown')
+        runtime_model_name = self.model if isinstance(self.model, str) else getattr(self, "runtime_model_name", None)
+        if isinstance(runtime_model_name, str):
+            self.runtime_model_name = runtime_model_name
 
         # Convert model name to chat model if needed
         if isinstance(self.model, str):
-            is_reasoning_model = any(prefix in self.model.lower() for prefix in ['o1', 'o3', 'o4', 'gpt-5.2-2025-12-11', 'gpt-5.2'])
-            is_gpt52 = any(prefix in self.model.lower() for prefix in ['gpt-5.2-2025-12-11', 'gpt-5.2'])
+            model_lower = self.runtime_model_name.lower()
+            is_reasoning_model = any(prefix in model_lower for prefix in ['o1', 'o3', 'o4', 'gpt-5.2-2025-12-11', 'gpt-5.2'])
+            is_gpt52 = any(prefix in model_lower for prefix in ['gpt-5.2-2025-12-11', 'gpt-5.2'])
             if is_reasoning_model:
                 reasoning_cfg = {"summary": "auto"}
                 if is_gpt52:
                     reasoning_cfg["effort"] = self.reasoning_effort
-                self.model = init_chat_model(f"openai:{self.model_name_str}", reasoning=reasoning_cfg)
+                elif self.reasoning_effort in {"low", "medium", "high"}:
+                    reasoning_cfg["effort"] = self.reasoning_effort
+                else:
+                    reasoning_cfg["effort"] = "high"
+                self.model = init_chat_model(f"openai:{self.runtime_model_name}", reasoning=reasoning_cfg)
             else:
-                self.model = init_chat_model(f"openai:{self.model_name_str}")
+                self.model = init_chat_model(f"openai:{self.runtime_model_name}")
 
         # Create FilesystemBackend for this agent
         self.backend = FilesystemBackend(root_dir=self.workspace_dir, virtual_mode=True)
@@ -818,5 +828,4 @@ class AgenticHandoff(OptimizationMethod):
         except Exception:
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
-
 

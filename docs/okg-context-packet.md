@@ -1,107 +1,66 @@
-# OKG Context Packet Draft
+# OKG Context Packet
 
-This packet is the first contract between Engram agents and the OKG
-memex-sr deployment. It is intentionally a file contract
-first: Engram can prepend or attach this text to an agent run without
-depending on a live OKG server.
+Engram agents should get Memex-SR context through the OKG MCP tool
+`generate_context_packet`, not by reading a static packet file. The
+packet is generated from a pinned OKG generation, and every evidence id
+in the rendered markdown should resolve through `get_node`.
 
-## Packet Inputs
+## MCP Call
 
-- `problem_name`: Engram problem id, such as `cloudcast`, `vidur`, or
-  `llm_sql`.
-- `domain`: networking, ML systems, databases, distributed systems, or
-  another configured domain.
-- `topic_slugs`: OKG topics/concepts to retrieve.
-- `generation_id`: pinned OKG generation used to produce the packet.
-- `evidence_budget`: maximum evidence chunks or claims to include.
-- `token_budget`: maximum output size.
+```python
+packet_markdown = mcp_client.call_tool(
+    "generate_context_packet",
+    {
+        "problem_name": "cloudcast",
+        "domain": "networking",
+        "topic_slugs": ["multicast", "routing"],
+        "evidence_budget": 20,
+        "token_budget": 4000,
+        # Optional: pass generation_id to pin explicitly.
+    },
+)
 
-## Packet Output
+agent.prompt = packet_markdown + "\n\n---\n\n" + agent.task_prompt
+```
+
+## Packet Shape
 
 ```markdown
 # Research Context Packet
 
 ## Problem Class
-[1-2 paragraphs mapping the Engram task to known systems problem
-families.]
 
 ## Design Principles
-- [Principle statement]
-  - Why it matters:
-  - Evidence: [paper/document/chunk ids]
 
 ## Mechanisms To Try
-- [Algorithmic mechanism or design pattern]
-  - Applicability:
-  - Known limits:
-  - Evidence:
 
 ## Trade-Off Map
-- [Objective A] vs [Objective B]
-  - Tension:
-  - Failure modes:
-  - Evidence:
 
 ## Experiment Advice
-- Metrics to inspect:
-- Stress cases to add:
-- Ablations to run:
 
 ## Anti-Patterns
-- [Approach]
-  - Why it tends to fail:
-  - Evidence:
 
 ## Evidence Index
-- [id]: [title/source/short locator]
 ```
 
-## Initial OKG Questions
+## Agent Rules
 
-These are good smoke-test questions for the memex-sr graph:
+- Treat packet claims as hypotheses to test, not ground truth.
+- Preserve evidence ids when a principle or mechanism affects a design
+  choice.
+- Turn principles into concrete implementation changes and evaluate
+  them with the benchmark harness.
+- When the packet suggests a trade-off, design an experiment that can
+  distinguish the sides of that trade-off.
+- Write negative results into Engram run artifacts so Memex-SR can
+  ingest them through `engram_runs`.
 
-- For congestion control, what are the major design families and what
-  trade-offs do they make between throughput, latency, fairness, and
-  stability?
-- For resource placement problems, what objective functions and
-  constraint relaxations recur across systems papers?
-- For request routing in ML serving, what mechanisms balance queueing
-  delay, locality, load, and tail latency?
-- For cache reuse and query workloads, what assumptions make a reuse
-  strategy work or fail?
-- Which papers introduce mechanisms that resemble Engram's current
-  benchmark task?
-- Which extracted claims have direct support from full-text chunks, and
-  which are still inference-only?
+## Smoke Questions
 
-## Engram Agent Instructions
-
-Agents receiving a context packet should:
-
-- Treat packet claims as hypotheses to test, not as ground truth.
-- Preserve evidence ids in their reasoning when a principle influences a
-  design choice.
-- Translate principles into concrete implementation changes and evaluate
-  them with `run_simulation`.
-- When a packet suggests a trade-off, design an experiment that can
-  distinguish the sides of the trade-off.
-- Add negative results to the handoff summary so later agents do not
-  rediscover the same dead end.
-
-## Harvest Back Into OKG
-
-After a run, the harvester should be able to turn Engram artifacts into
-graph evidence:
-
-- `research_journal.md` -> run-level digest document.
-- `knowledgebase/agent_N/experiments/exp_*/score.txt` -> experiment
-  result facts.
-- `snapshot.py` or `snapshot.cpp` -> candidate solution artifact.
-- final result JSON -> best solution, score, total simulations, total
-  agents, convergence reason.
-- agent summaries -> empirical claims, failed approaches, and
-  recommended next steps.
-
-Each harvested record should carry the Engram run id, problem name,
-agent number, experiment id, artifact path, content hash, and source
-generation id when it was produced from an OKG context packet.
+- For Cloudcast, what prior mechanisms are relevant to multicast,
+  routing, scheduling, replication, and bandwidth-delay trade-offs?
+- Which design principles are supported by papers versus by Engram run
+  evidence?
+- Which mechanisms have known failure modes or anti-patterns?
+- Which evidence ids in the packet resolve to live `paper`,
+  `document_chunk`, `experiment_result`, or `empirical_claim` nodes?

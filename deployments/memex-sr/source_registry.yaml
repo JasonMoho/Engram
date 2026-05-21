@@ -1,21 +1,20 @@
 sources:
-
-  paper-cut:
+  paper_cut:
     module: sources.paper_cut
     class: PaperCutSource
     ownership_id: memex-sr.paper-cut
-    params:
-      manifest_path: ${repo_root}/deployments/memex-sr/manifests/paper_cut.json
-
     source_class: reference_catalog
     record_identity_kind: domain_key
     record_identity_fields: [manifest_path]
     source_revision_kind: content_hash
     deletion_semantics: missing_from_completed_scope
     publication_mode: published_generation
+    params:
+      manifest_path: ${repo_root}/deployments/memex-sr/manifests/paper_cut.json
     sync:
       watch:
-        roots: ["${repo_root}/deployments/memex-sr/manifests"]
+        roots:
+          - ${repo_root}/deployments/memex-sr/manifests
         include_globs:
           - deployments/memex-sr/manifests/paper_cut.json
       triggers: [manual, reconcile]
@@ -33,60 +32,378 @@ sources:
         probe: stat_tree
         interval_seconds: 3600
 
-  doc-corpus:
+  openalex:
+    ownership_id: memex-sr.openalex
+    source_class: registry_only
+    params:
+      venues_file: ${repo_root}/deployments/memex-sr/venues.yaml
+      mode: manifest-builder-only
+    note: >
+      OpenAlex is used by the offline paper-cut builder, not by publish.
+      Keeping this registry-only avoids live network calls during OKG
+      publish cycles.
+
+  doc_corpus:
     module: okg.substrate.library.sources.doc_corpus
     class: DocCorpusSource
     ownership_id: memex-sr.doc-corpus
-    params:
-      repo: engram
-      repo_root: ${repo_root}
-      extractors_dir: ${manifest_dir}
-      include_globs:
-        - deployments/memex-sr/spec/proposal.md
-        - deployments/memex-sr/spec/design.md
-        - deployments/memex-sr/spec/memex-sr-deployment.md
-        - deployments/memex-sr/spec/source-ingestion-proposal.md
-        - deployments/memex-sr/spec/source-ingestion-tasks.md
-        - deployments/memex-sr/docs/source-acquisition.md
-        - deployments/memex-sr/docs/chunky-deployment.md
-        - deployments/memex-sr/seed_corpus/*.md
-        - docs/okg-memex-sr.md
-        - docs/okg-context-packet.md
-      exclude_globs:
-        - "**/.git/**"
-        - "**/.venv/**"
-        - "**/node_modules/**"
-        - "**/__pycache__/**"
-        - "external/okg/.venv/**"
-      max_files: 100
-      max_bytes_per_file: 1000000
-
     source_class: discovery_crawl
     record_identity_kind: scoped_locator
     record_identity_fields: [repo, path]
     source_revision_kind: content_hash
     deletion_semantics: missing_from_completed_scope
     publication_mode: published_generation
+    params:
+      repo: engram
+      repo_root: ${repo_root}
+      extractors_dir: ${manifest_dir}
+      include_globs:
+        - deployments/memex-sr/README.md
+        - deployments/memex-sr/HANDOFF.md
+        - deployments/memex-sr/PHASE0.md
+        - deployments/memex-sr/spec/*.md
+        - deployments/memex-sr/docs/*.md
+        - deployments/memex-sr/reports/cloudcast-ab/*.md
+        - deployments/memex-sr/seed_corpus/*.md
+        - docs/okg-context-packet.md
+        - docs/okg-memex-sr.md
+      exclude_globs:
+        - '**/.git/**'
+        - '**/.venv/**'
+        - '**/node_modules/**'
+        - '**/__pycache__/**'
+        - external/okg/.venv/**
+      max_files: 250
+      max_bytes_per_file: 1000000
     sync:
       watch:
-        roots: ["${repo_root}"]
+        roots:
+          - ${repo_root}
         include_globs:
-          - deployments/memex-sr/spec/proposal.md
-          - deployments/memex-sr/spec/design.md
-          - deployments/memex-sr/spec/memex-sr-deployment.md
-          - deployments/memex-sr/spec/source-ingestion-proposal.md
-          - deployments/memex-sr/spec/source-ingestion-tasks.md
-          - deployments/memex-sr/docs/source-acquisition.md
-          - deployments/memex-sr/docs/chunky-deployment.md
+          - deployments/memex-sr/README.md
+          - deployments/memex-sr/HANDOFF.md
+          - deployments/memex-sr/PHASE0.md
+          - deployments/memex-sr/spec/*.md
+          - deployments/memex-sr/docs/*.md
+          - deployments/memex-sr/reports/cloudcast-ab/*.md
           - deployments/memex-sr/seed_corpus/*.md
-          - docs/okg-memex-sr.md
           - docs/okg-context-packet.md
-        exclude_globs:
-          - "**/.git/**"
-          - "**/.venv/**"
-          - "**/node_modules/**"
-          - "**/__pycache__/**"
-          - "external/okg/.venv/**"
+          - docs/okg-memex-sr.md
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  cloudcast_facts:
+    module: sources.cloudcast_facts
+    class: CloudcastFactsSource
+    ownership_id: memex-sr.cloudcast-facts
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [facts_path]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      facts_path: ${repo_root}/deployments/memex-sr/fixtures/cloudcast_facts.yaml
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/deployments/memex-sr/fixtures
+        include_globs:
+          - deployments/memex-sr/fixtures/cloudcast_facts.yaml
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  cloudcast_documents:
+    module: sources.cloudcast_documents
+    class: CloudcastDocumentsSource
+    ownership_id: memex-sr.cloudcast-documents
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [assets_manifest]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      assets_manifest: ${repo_root}/deployments/memex-sr/manifests/cloudcast_acquired_assets.jsonl
+      repo_root: ${repo_root}
+      source_pack: cloudcast-actionable-v0
+      problem_name: cloudcast
+      chunk_max_chars: 3200
+      chunk_overlap: 250
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/deployments/memex-sr/manifests
+          - ${repo_root}/deployments/memex-sr/.cache/cloudcast_sources
+        include_globs:
+          - deployments/memex-sr/manifests/cloudcast_acquired_assets.jsonl
+          - deployments/memex-sr/.cache/cloudcast_sources/**
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 300
+
+  paper_fulltext_documents:
+    module: sources.paper_fulltext_documents
+    class: PaperFulltextDocumentsSource
+    ownership_id: memex-sr.paper-fulltext-documents
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [assets_manifest]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      assets_manifest: ${repo_root}/deployments/memex-sr/manifests/paper_fulltext_assets.jsonl
+      repo_root: ${repo_root}
+      source_pack: systems-db-2022-2026
+      chunk_max_chars: 3200
+      chunk_overlap: 250
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/deployments/memex-sr/manifests
+          - ${repo_root}/deployments/memex-sr/.cache/paper_fulltext
+        include_globs:
+          - deployments/memex-sr/manifests/paper_fulltext_assets.jsonl
+          - deployments/memex-sr/.cache/paper_fulltext/**
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 900
+
+  paper_research_facts:
+    module: sources.paper_research_facts
+    class: PaperResearchFactsSource
+    ownership_id: memex-sr.paper-research-facts
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [facts_manifest]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      facts_manifest: ${repo_root}/deployments/memex-sr/manifests/paper_research_facts.jsonl
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/deployments/memex-sr/manifests
+        include_globs:
+          - deployments/memex-sr/manifests/paper_research_facts.jsonl
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 900
+
+  engram_research_digest:
+    module: okg.substrate.library.sources.engram_runs.research_digest
+    class: EngramResearchDigestSource
+    ownership_id: memex-sr.engram-research-digest
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [runs_dir]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      runs_dir: ${repo_root}/results
+      loaded_modules: [scholarly, bookkeeping, reasoning, systems_research, engram_runs]
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/results
+        include_globs:
+          - results/*/research_journal.md
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  engram_experiment_result:
+    module: okg.substrate.library.sources.engram_runs.experiment_result
+    class: EngramExperimentResultSource
+    ownership_id: memex-sr.engram-experiment-result
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [runs_dir]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      runs_dir: ${repo_root}/results
+      loaded_modules: [scholarly, bookkeeping, reasoning, systems_research, engram_runs]
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/results
+        include_globs:
+          - results/*/knowledgebase/agent_*/experiments/exp_*/score.txt
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  engram_candidate_solution:
+    module: okg.substrate.library.sources.engram_runs.candidate_solution
+    class: EngramCandidateSolutionSource
+    ownership_id: memex-sr.engram-candidate-solution
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [runs_dir]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      runs_dir: ${repo_root}/results
+      loaded_modules: [scholarly, bookkeeping, reasoning, systems_research, engram_runs]
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/results
+        include_globs:
+          - results/*/knowledgebase/agent_*/experiments/exp_*/snapshot.*
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  engram_final_result:
+    module: okg.substrate.library.sources.engram_runs.final_result
+    class: EngramFinalResultSource
+    ownership_id: memex-sr.engram-final-result
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [runs_dir]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      runs_dir: ${repo_root}/results
+      loaded_modules: [scholarly, bookkeeping, reasoning, systems_research, engram_runs]
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/results
+        include_globs:
+          - results/*/final_result.json
+      triggers: [fs_event, poll, manual, reconcile]
+      default_event_mode: scope_complete
+      reconcile_mode: scope_complete
+      deletes_require_reconcile: true
+      cheap_probe: stat_tree
+      scope:
+        accepts: [path]
+        unsupported_fallback: scope_complete
+      dependents:
+        on_event: none
+        on_reconcile: none
+      poll:
+        probe: stat_tree
+        interval_seconds: 60
+
+  engram_agent_summary:
+    module: okg.substrate.library.sources.engram_runs.agent_summary
+    class: EngramAgentSummarySource
+    ownership_id: memex-sr.engram-agent-summary
+    source_class: discovery_crawl
+    record_identity_kind: scoped_locator
+    record_identity_fields: [runs_dir]
+    source_revision_kind: content_hash
+    deletion_semantics: missing_from_completed_scope
+    publication_mode: published_generation
+    params:
+      runs_dir: ${repo_root}/results
+      loaded_modules: [scholarly, bookkeeping, reasoning, systems_research, engram_runs]
+    sync:
+      watch:
+        roots:
+          - ${repo_root}/results
+        include_globs:
+          - results/*/agent_*_summary.json
       triggers: [fs_event, poll, manual, reconcile]
       default_event_mode: scope_complete
       reconcile_mode: scope_complete

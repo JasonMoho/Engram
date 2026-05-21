@@ -1,8 +1,22 @@
 name: memex-sr
-description: Engram-owned Memex-SR OKG deployment for autonomous systems research.
+description: >
+  Engram-owned OKG deployment for autonomous systems research. The
+  deployment is scaffolded from OKG's systems-research profile, then
+  extended with Engram run-artifact ingestion.
+
+profile:
+  name: systems-research
+  version: 0.1.0
+  initialized_at: '2026-05-20T04:27:42+00:00'
+  init_answers:
+    deployment_name: memex-sr
+    postgres_dsn: postgres://postgres:okg@localhost:5433/engram_memex_sr_phase0
+    paper_cut_manifest: ${repo_root}/deployments/memex-sr/manifests/paper_cut.json
+    venues_file: ${repo_root}/deployments/memex-sr/venues.yaml
+    mcp_port: 5430
 
 postgres:
-  dsn: ${OKG_DSN}
+  dsn: postgres://postgres:okg@localhost:5433/engram_memex_sr_phase0
 
 runtime:
   enabled: false
@@ -12,15 +26,17 @@ source_registry: source_registry.yaml
 mcp_instructions: docs/mcp-instructions.md
 
 modules:
-  - git_graph
-  - extraction
-  # Latest OKG dev's extraction module includes claim/evidence routes.
-  # Reasoning supplies Evidence/Hypothesis; openspec and agent_memory
-  # satisfy reasoning's own optional cross-module narrowings.
+  - scholarly
+  - bookkeeping
   - reasoning
+  - systems_research
+  - engram_runs
+  - extraction
+  - person
+  - dataset
   - openspec
   - agent_memory
-  - person
+  - git_graph
 
 embedding:
   enabled: false

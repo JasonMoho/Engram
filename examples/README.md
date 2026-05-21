@@ -22,8 +22,14 @@ python examples/handoff_example_usage.py \
 | `--model` | LLM model to use |
 | `--max_agents` | Number of sequential agents |
 | `--agent_timeout` | Wall-clock timeout per agent (minutes) |
+| `--okg_context_file` | Rendered OKG context packet to prepend to the benchmark task prompt |
+| `--okg_context_metadata_file` | Optional JSON metadata for the OKG packet |
 
 Run `python examples/handoff_example_usage.py --help` for all options.
+
+The handoff runner also accepts OpenRouter aliases such as
+`--model openrouter:openai/o3`. The runtime model slug is passed through
+to LangChain while the result path uses a filesystem-safe label.
 
 ---
 

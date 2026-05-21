@@ -121,6 +121,20 @@ python examples/handoff_example_usage.py \
     --agent_timeout 30
 ```
 
+To run the Cloudcast OKG context-packet treatment, first generate or
+save a packet markdown file, then add it to the fair handoff run:
+
+```bash
+python examples/handoff_example_usage.py \
+    --problem_name cloudcast \
+    --model openrouter:openai/o3 \
+    --num_runs 1 \
+    --max_agents 1 \
+    --agent_timeout 5 \
+    --okg_context_file deployments/memex-sr/reports/cloudcast-ab/context-packet.md \
+    --arm_name engram_okg_context
+```
+
 Each run produces JSON logs with generated code, scores, and full reasoning traces
 under `results/`. See `python examples/handoff_example_usage.py --help` for all
 flags — notably `--num_runs`, `--max_agents`, and `--agent_timeout` control how

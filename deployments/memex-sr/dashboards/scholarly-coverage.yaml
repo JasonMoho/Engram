@@ -1,0 +1,84 @@
+# Scholarly-coverage panel for systems-research deployments.
+#
+# Surfaces the high-level "do we have enough literature" signal:
+# per-source paper count, per-venue coverage breakdown, document-
+# asset classification distribution. Panels deliberately mirror the
+# invariants in `invariants.yaml` so a YELLOW finding tells the
+# operator where to look without going through `okg doctor`.
+
+name: scholarly-coverage
+title: Scholarly Coverage
+description: |
+  Per-source paper counts, per-venue distribution, and document-asset
+  acquisition status. Primary dashboard for tracking whether the
+  systems-research literature cut is healthy enough for context-packet
+  generation.
+
+panels:
+  - id: paper_count_by_source
+    title: Paper count by source
+    kind: table
+    description: |
+      How many papers has each scholarly source emitted into the
+      latest publish? A source with zero rows across multiple
+      publishes is a coverage regression candidate.
+    sql: |
+      SELECT n.attrs->>'source' AS source,
+             count(*) AS paper_count
+        FROM okg.nodes_live n
+       WHERE n.valid_to_gen IS NULL
+         AND n.subtype = 'paper'
+       GROUP BY n.attrs->>'source'
+       ORDER BY paper_count DESC
+
+  - id: paper_count_by_venue
+    title: Paper count by venue
+    kind: table
+    description: |
+      Which venues are represented in the current cut, and at what
+      depth? Lets the operator spot venues whose coverage is shallow
+      enough to need a manifest refresh.
+    sql: |
+      SELECT n.attrs->>'venue_short_name' AS venue,
+             count(*) AS paper_count
+        FROM okg.nodes_live n
+       WHERE n.valid_to_gen IS NULL
+         AND n.subtype = 'paper'
+         AND n.attrs->>'venue_short_name' IS NOT NULL
+       GROUP BY n.attrs->>'venue_short_name'
+       ORDER BY paper_count DESC
+       LIMIT 30
+
+  - id: document_asset_classification
+    title: Document-asset acquisition status
+    kind: table
+    description: |
+      Per memex-sr's HANDOFF.md item 3: every document_asset should
+      be classified as verified-pdf, landing-only, inferred,
+      publisher-only, blocked, or operator-supplied. This panel
+      surfaces the distribution so the operator can prioritize
+      classification work.
+    sql: |
+      SELECT coalesce(n.attrs->>'access_basis', 'UNCLASSIFIED')
+               AS access_basis,
+             count(*) AS asset_count
+        FROM okg.nodes_live n
+       WHERE n.valid_to_gen IS NULL
+         AND n.subtype = 'document_asset'
+       GROUP BY n.attrs->>'access_basis'
+       ORDER BY asset_count DESC
+
+  - id: latest_published_generations
+    title: Latest published generations
+    kind: table
+    description: Most recent five publish cycles, with row deltas.
+    sql: |
+      SELECT generation_id,
+             published_at,
+             nodes_inserted,
+             edges_inserted,
+             status
+        FROM okg.generations
+       WHERE status IN ('published', 'blocked')
+       ORDER BY published_at DESC
+       LIMIT 5

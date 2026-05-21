@@ -1,130 +1,119 @@
 # Memex-SR Handoff
 
-This is the clean handoff path for collaborators who need to deploy,
-query, or extend the Memex-SR OKG without already knowing OKG.
+Memex-SR is Engram's OKG deployment for an autonomous systems
+researcher. It consumes OKG's upstream `systems-research` profile and
+adds Engram-specific run ingestion.
 
-## What This Is
+## What Is In This Deployment
 
-Memex-SR is an Engram-owned OKG deployment for an autonomous systems
-researcher. It is meant to become a literature and experiment memory
-for systems/database research:
+- Systems/database paper metadata from the committed paper-cut manifest.
+- Local Memex-SR design, source-ingestion, Cloudcast, and handoff docs.
+- The `systems_research` ontology: `DesignPrinciple`, `Mechanism`,
+  `TradeOff`, and `AntiPattern`.
+- The `engram_runs` ontology and five run-artifact sources for
+  `research_journal.md`, `score.txt`, `snapshot.*`,
+  `final_result.json`, and `agent_*_summary.json`.
+- A context-packet MCP path via OKG's `generate_context_packet` tool.
 
-- ingest papers, reports, standards, blogs, and Engram run artifacts;
-- preserve provenance, full text, chunks, and evidence ids;
-- distill evidence into principles, mechanisms, trade-offs, failure
-  modes, and open problems;
-- serve bounded context to Engram agents through MCP or generated
-  context packets.
+The previous hand-rolled deployment is preserved at
+`deployments/memex-sr.old/` for diff reference until the migration is
+fully verified.
 
-The OKG substrate code lives in the `external/okg` submodule. The
-deployment-specific work lives in `deployments/memex-sr`.
+## Fresh Setup
 
-## Current Verified State
-
-The latest verified local graph cut was published on May 14, 2026 as
-generation `5` in:
-
-```text
-postgres://postgres:okg@127.0.0.1:5433/engram_memex_sr_phase0
-```
-
-That cut contains:
-
-- 25,827 nodes and 39,561 edges;
-- 4,782 paper nodes;
-- paper metadata and asset URL hints from USENIX, PVLDB, and OpenAlex;
-- the local Memex-SR design corpus.
-
-It does not yet contain parsed paper full text, evidence slices, or
-distilled textbook-style sections. A fresh rebuild may produce a
-different generation id; use paper/node/edge counts and source health as
-the stable verification signals.
-
-## Start Here
-
-Read in this order:
-
-1. [`docs/okg-newcomer-guide.md`](docs/okg-newcomer-guide.md) for the
-   OKG mental model, current graph contents, and extension workflow.
-2. [`PHASE0.md`](PHASE0.md) for local setup and MCP registration.
-3. [`docs/pre-full-text-readiness.md`](docs/pre-full-text-readiness.md)
-   for current graph counts, known corpus gaps, and the gates before PDF
-   acquisition.
-4. [`spec/source-ingestion-proposal.md`](spec/source-ingestion-proposal.md)
-   for the source-ingestion proposal and implementation phases.
-5. [`spec/source-ingestion-tasks.md`](spec/source-ingestion-tasks.md)
-   for the concrete work plan and acceptance checks.
-6. [`docs/source-acquisition.md`](docs/source-acquisition.md) for the
-   allowed acquisition lanes for open PDFs, MIT-authenticated material,
-   textbooks, and operator-supplied local assets.
-7. [`docs/chunky-deployment.md`](docs/chunky-deployment.md) for the
-   lower-friction CSAIL chunky login/bootstrap workflow.
-8. [`spec/design.md`](spec/design.md) for the longer-term deployment
-   architecture.
-
-## Clean Local Bootstrap
-
-From a clean clone:
+From the Engram repo root:
 
 ```bash
-git clone --recurse-submodules https://github.com/mit-nms/Engram.git
-cd Engram
 git submodule update --init --recursive
-bash deployments/memex-sr/scripts/bootstrap_local.sh
+cd external/okg
+git fetch origin
+git checkout 06408507
+cd ../..
 ```
 
-The bootstrap script expects:
-
-- Docker;
-- `uv`;
-- local access to port `5433`;
-- the committed `deployments/memex-sr/manifests/paper_cut.json`.
-
-The script starts the OKG Postgres compose stack, creates the Memex-SR
-database, installs extensions, migrates OKG schema, loads the
-Memex-SR catalog, publishes the committed local cut, and prints status.
-Run `bash deployments/memex-sr/scripts/bootstrap_local.sh --check-only`
-to check prerequisites without starting Postgres. If `uv` is missing,
-rerun with `--install-uv`. If Docker daemon access is not available,
-either ask an admin to add the user to the `docker` group or provide an
-existing Postgres DSN and rerun with `--skip-docker`.
-
-On `chunky.csail.mit.edu`, prefer:
+The deployment has already been scaffolded from the profile. To recreate
+it after OKG fixes the profile CLI collision, the intended command is:
 
 ```bash
-tmux new -A -s memex-sr
-bash deployments/memex-sr/scripts/bootstrap_chunky.sh --install-uv
+uv --directory external/okg run --extra mcp okg init \
+  --profile systems-research \
+  --deployment-name memex-sr \
+  --postgres-dsn postgres://postgres:okg@localhost:5433/engram_memex_sr_phase0 \
+  --paper-cut-manifest "$(pwd)/deployments/memex-sr/manifests/paper_cut.json" \
+  --venues-file "$(pwd)/deployments/memex-sr/venues.yaml" \
+  --mcp-port 5430 \
+  --no-publish
 ```
 
-That wrapper refreshes Kerberos/AFS credentials only when needed,
-updates submodules, and then calls the normal local bootstrap.
+At OKG commit `06408507`, that exact CLI path crashes because the
+dynamic profile-flag injector collides on `--deployment-name`. Until
+that upstream fix lands, use the Engram shim, which calls the same OKG
+profile-init library:
 
-## Manual Verification
+```bash
+uv --directory external/okg run --extra mcp \
+  python ../deployments/memex-sr/scripts/init_systems_research_profile.py \
+  --force
+```
 
-Set the environment:
+After regeneration, reapply the Engram hardening in this checkout:
+`engram_runs` in `deployment.yaml`, the five Engram run sources in
+`source_registry.yaml`, local `paper_cut` paths, `doc_corpus`
+`repo_root` / `extractors_dir`, and OpenAlex as `registry_only`.
+
+## Local Publish
+
+Set the local DSN:
 
 ```bash
 export REPO_ROOT="$(pwd)"
-export MEMEX_SR_OKG_DSN=postgres://postgres:okg@127.0.0.1:5433/engram_memex_sr_phase0
+export MEMEX_SR_OKG_DSN=postgres://postgres:okg@localhost:5433/engram_memex_sr_phase0
 export OKG_DSN="$MEMEX_SR_OKG_DSN"
 export OKG_DEPLOYMENTS_DIR="$REPO_ROOT/deployments"
 export OKG_AGENT=1
 ```
 
-Check deployment health:
+Then run:
 
 ```bash
-uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg status \
+uv --directory external/okg run --extra mcp okg migrate \
+  --dsn "$MEMEX_SR_OKG_DSN" \
+  --apply
+
+uv --directory external/okg run --extra mcp okg catalog load \
+  --deployment deployments/memex-sr \
+  --dsn "$MEMEX_SR_OKG_DSN" \
+  --apply
+
+uv --directory external/okg run --extra mcp okg ingest \
+  --deployment memex-sr \
+  --dsn "$MEMEX_SR_OKG_DSN" \
+  --inline \
+  --progress
+```
+
+`okg ingest` runs the configured sources and publishes between source
+dependency groups. `okg run --once` alone only publishes already-staged
+facts, so it is expected to return `no_op` on a fresh database before
+source ingestion. Publish must consume local files only. OpenAlex is
+intentionally registry-only here; the offline manifest builder can
+refresh `manifests/paper_cut.json`, but OKG publish should not hit live
+literature services.
+
+## Verification
+
+```bash
+uv --directory external/okg run --extra mcp okg status \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
   --json
 
-uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg doctor \
+uv --directory external/okg run --extra mcp okg doctor \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
   --json
 
-uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg metrics \
+uv --directory external/okg run --extra mcp okg metrics \
   --source-sync \
   --deployment memex-sr \
   --dsn "$MEMEX_SR_OKG_DSN" \
@@ -133,20 +122,32 @@ uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg metrics \
 
 Expected shape:
 
-- at least one published generation;
-- source-sync DLQ is `0`;
-- `paper` count is `4,782` for the committed paper cut;
-- `document_asset` nodes exist, but parsed full-text document/chunk
-  coverage for papers is not expected yet.
+- a published generation;
+- nonzero `paper` nodes from the paper cut;
+- no RED doctor findings;
+- source-sync DLQ at `0`;
+- after Engram writes runs under `results/`, nonzero
+  `ResearchDigest`, `ExperimentResult`, `CandidateSolution`,
+  `FinalResult`, and `AgentSummary` nodes.
 
-## MCP Setup
+## Known OKG Gaps At 06408507
 
-Register the local MCP server:
+- `okg init --profile systems-research` has a profile flag collision on
+  `--deployment-name`; use the shim above until OKG fixes the CLI.
+- Migrating an older pre-branch database can fail with
+  `graph_generations.branch_id contains null values`. A fresh database
+  works. Existing databases need the OKG branch-backfill fix or a manual
+  default-branch backfill before running `okg migrate`.
+- `generate_context_packet` renders through MCP directly. Persistent
+  derived-artifact catalog registration is an OKG follow-on.
+
+## MCP
+
+Register the graph for Codex:
 
 ```bash
 codex mcp add okg-memex-sr \
   --env OKG_DSN="$MEMEX_SR_OKG_DSN" \
-  --env MEMEX_SR_OKG_DSN="$MEMEX_SR_OKG_DSN" \
   --env OKG_DEPLOYMENTS_DIR="$REPO_ROOT/deployments" \
   --env OKG_AGENT=1 \
   -- uv --directory "$REPO_ROOT/external/okg" run --extra mcp okg mcp-serve \
@@ -154,90 +155,24 @@ codex mcp add okg-memex-sr \
     --deployment memex-sr
 ```
 
-Smoke prompt for a new Codex CLI session:
+Smoke prompt:
 
 ```text
-Use the okg-memex-sr MCP server. Call describe_graph, then answer:
-what is currently in the Memex-SR graph, what is missing before full
-text, and show one example paper with its authors and venue.
+Use the okg-memex-sr MCP server. Call describe_graph, then generate a
+context packet for problem_name=cloudcast, domain=networking,
+topic_slugs=["multicast", "routing"], evidence_budget=20, token_budget=4000.
+Pick one evidence id from the packet and resolve it with get_node.
 ```
 
-The MCP server pins to a generation when the session starts. Reconnect
-after a new publish if you need the latest graph.
+## How To Extend
 
-## How To Extend It
-
-Every extension should follow the same substrate path:
-
-1. Add config or source code under `deployments/memex-sr`.
-2. Add ontology classes or bridge narrowings only if the existing graph
-   cannot represent the data.
-3. Run collection/acquisition into a local manifest or cache.
-4. Publish from deterministic local inputs.
-5. Verify live node/edge rows in a published generation.
-6. For high-volume sources, rerun unchanged input and verify zero new
-   facts.
-
-Do not write directly to OKG live tables. Do not add edges without
-bridge narrowings. Do not let publish make live network calls for
-full-text parsing.
-
-Concrete extension recipes are in
-[`docs/okg-newcomer-guide.md`](docs/okg-newcomer-guide.md).
-
-## Immediate Next Work
-
-Do this before full-text download:
-
-1. Corpus coverage audit for every target venue/year in `venues.yaml`.
-2. Paper quality audit over duplicate DOI/title, missing authors,
-   missing `published_in`, missing source records, suspicious 2026
-   records, and OpenAlex main-track noise.
-3. Asset URL audit that classifies every `document_asset` as verified
-   PDF, landing-only, inferred-needs-verification, publisher/DOI-only,
-   blocked, or operator-supplied.
-4. Guardrail invariants that block bad full-text publishes.
-5. A fresh local rebuild from an empty database before opening this to a
-   wider collaborator group.
-
-For acquisition planning, run:
-
-```bash
-uv --project external/okg run \
-  python "$PWD/deployments/memex-sr/scripts/plan_acquisition.py" \
-    --include-textbooks \
-    --out /tmp/memex-sr-acquisition-plan.json
-```
-
-The current committed cut produces 7,312 plan records when enabled
-textbooks are included: 2,969 `fetch_open`, 185 `queue_mit_manual`, and
-4,158 `skip_metadata_only`. The next implementation step is
-audit/reporting plus a downloader that consumes only `fetch_open`, not a
-publisher or MIT proxy scraper.
-
-## Known Corpus Gaps
-
-The current paper cut has strong initial coverage for PVLDB, SIGMOD,
-NSDI, OSDI, ICDE, and USENIX ATC, but weak or missing coverage for:
-
-```text
-sosp, sigcomm, hotnets, conext, eurosys, socc, mlsys, pods, cidr, edbt
-```
-
-DBLP is still planned as the authoritative venue/year enumerator, but
-local shell access reset or timed out during the May 14, 2026 sampling
-run. USENIX, PVLDB, and OpenAlex were used for the committed paper cut.
-
-## Handoff Guardrails
-
-- Treat generation `5` as the verified reference cut, not as a hardcoded
-  permanent generation.
-- Treat `document_asset` as URL/provenance hints, not local full text.
-- Keep live-count/operator docs out of `doc-corpus`; the source indexes
-  stable design/context docs so a publish does not chase its own
-  generation numbers.
-- Keep `external/okg` pinned to the intended `dev` commit.
-- Keep source/network work outside publish; publish should consume
-  manifests and local cached assets.
-- Keep collaborator changes deployment-owned unless a real substrate
-  change is needed.
+- New ontology that is generally useful belongs upstream in
+  `external/okg/src/okg/substrate/library/ontologies/<module>/`.
+- Engram-only source configuration belongs in this deployment's
+  `source_registry.yaml`.
+- New reusable source adapters belong upstream under
+  `external/okg/src/okg/substrate/library/sources/<module>/`.
+- New corpus inputs should enter through deterministic manifests or
+  local caches, then publish through OKG source adapters.
+- Do not write directly to OKG live tables, and do not add graph edges
+  without catalog narrowings.

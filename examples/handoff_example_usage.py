@@ -6,6 +6,7 @@ Example usage of the AgenticHandoff optimizer with sequential agent handoffs.
 import os
 import sys
 import argparse
+import json
 from pathlib import Path
 
 # Add the root directory to the path so we can import modules
@@ -26,7 +27,16 @@ if root_dir not in sys.path:
 from Architect.task import load_task_from_paths
 from Architect.methods.agentic_handoff import AgenticHandoff
 from Architect.methods.agentic_handoff_no_kb import AgenticHandoffNoKB
-from _common import get_results_base_dir, normalize_initial_program_path, auto_increment_run_dir, print_initial_program, resolve_problem_config
+from _common import (
+    auto_increment_run_dir,
+    configure_model_provider,
+    create_okg_augmented_task_prompt,
+    get_results_base_dir,
+    normalize_initial_program_path,
+    print_initial_program,
+    resolve_problem_config,
+    sha256_file,
+)
 
 
 def run_handoff_optimization(
@@ -40,6 +50,10 @@ def run_handoff_optimization(
     early_stop_patience: int = 10,
     enable_continue_message: bool = False,
     remove_kb: bool = False,
+    okg_context_file: str | None = None,
+    okg_context_metadata_file: str | None = None,
+    arm_name: str | None = None,
+    comparison_type: str = "engram_benchmark_arm",
 ):
     """Run AgenticHandoff optimization with sequential agent handoffs.
 
@@ -53,11 +67,17 @@ def run_handoff_optimization(
         early_stop_patience: Stop AgenticHandoff if no improvement for this many iterations
         enable_continue_message: Enable continue message
         remove_kb: If True, use AgenticHandoffNoKB (no knowledge base; experiments wiped on handoff)
+        okg_context_file: Optional rendered OKG context packet to prepend to the task prompt
+        okg_context_metadata_file: Optional JSON metadata emitted with the context packet
+        arm_name: Optional benchmark arm label for reporting
+        comparison_type: Optional comparison-family label for reporting
     """
 
     # Get the base directory (root of the project)
     base_dir = Path(__file__).parent.parent
     prompts_dir = base_dir / "Architect" / "methods" / "deepagents_utils"
+
+    runtime_model, model_label, model_metadata = configure_model_provider(model)
 
     # Prompt paths (no-KB ablation uses different system prompt)
     system_prompt_path = prompts_dir / "handoff_system_prompt_no_kb.txt" if remove_kb else prompts_dir / "handoff_system_prompt.txt"
@@ -68,13 +88,28 @@ def run_handoff_optimization(
 
     results_base = get_results_base_dir(base_dir)
     handoff_suffix = "no_kb" if remove_kb else "handoff"
-    results_dir = results_base / (results_dir_name or f"{handoff_suffix}_{problem_name}_model_{model}_give_files_{give_files}_run0")
+    default_arm = "engram_okg_context" if okg_context_file else "engram_control"
+    arm_name = arm_name or default_arm
+    results_dir = results_base / (results_dir_name or f"{handoff_suffix}_{problem_name}_model_{model_label}_give_files_{give_files}_run0")
 
     results_dir = auto_increment_run_dir(results_dir)
     debug = True
 
     # Problem-specific configuration.
     task_prompt_path, evaluator_path, initial_program_path = resolve_problem_config(base_dir, problem_name, give_files)
+    original_task_prompt_path = task_prompt_path
+    okg_context_metadata = None
+    if okg_context_file:
+        context_path = Path(okg_context_file).expanduser().resolve()
+        metadata_path = Path(okg_context_metadata_file).expanduser().resolve() if okg_context_metadata_file else None
+        if not context_path.exists():
+            raise FileNotFoundError(f"OKG context file not found: {context_path}")
+        task_prompt_path, okg_context_metadata = create_okg_augmented_task_prompt(
+            task_prompt_path=task_prompt_path,
+            okg_context_file=context_path,
+            okg_context_metadata_file=metadata_path,
+            results_dir=results_dir,
+        )
 
     # Convert to strings
     evaluator_path = str(evaluator_path)
@@ -94,8 +129,14 @@ def run_handoff_optimization(
     print("AgenticHandoff Optimization" + (" (no-KB ablation)" if remove_kb else ""))
     print("=" * 60)
     print(f"Task Prompt: {task_prompt_path}")
+    if okg_context_metadata:
+        print(f"OKG Context Packet: {okg_context_metadata['okg_context_file']}")
+        print(f"OKG Context Hash: {okg_context_metadata['okg_context_hash']}")
+        print(f"OKG Generation: {okg_context_metadata.get('okg_generation_id')}")
     print(f"Evaluator Path: {evaluator_path}")
     print(f"Model: {model}")
+    if runtime_model != model:
+        print(f"Runtime Model: {runtime_model}")
     print(f"Results Directory: {results_dir}")
     print(f"System Prompt: {system_prompt_path}")
     print(f"Max Agents: {max_agents}")
@@ -104,6 +145,35 @@ def run_handoff_optimization(
     print_initial_program(initial_program_path)
     print("=" * 60)
     print()
+
+    result_root = Path(results_dir)
+    result_root.mkdir(parents=True, exist_ok=True)
+    benchmark_run_config = {
+        "arm": arm_name,
+        "comparison_type": comparison_type,
+        "problem_name": problem_name,
+        "model": model,
+        "runtime_model": runtime_model,
+        "model_metadata": model_metadata,
+        "max_agents": max_agents,
+        "agent_timeout_minutes": agent_timeout_minutes,
+        "num_runs_configured_by_cli": None,
+        "give_files": give_files,
+        "remove_kb": remove_kb,
+        "early_stop_patience": early_stop_patience,
+        "enable_continue_message": enable_continue_message,
+        "task_prompt_path": task_prompt_path,
+        "original_task_prompt_path": str(original_task_prompt_path),
+        "original_task_prompt_hash": sha256_file(Path(original_task_prompt_path)),
+        "evaluator_path": evaluator_path,
+        "initial_program_path": initial_program_path,
+        "system_prompt_path": system_prompt_path,
+        "okg_context": okg_context_metadata,
+    }
+    (result_root / "benchmark_run_config.json").write_text(
+        json.dumps(benchmark_run_config, indent=2, sort_keys=True, default=str),
+        encoding="utf-8",
+    )
 
     # Load the task
     print("Loading task...")
@@ -116,7 +186,7 @@ def run_handoff_optimization(
     print(f"Initializing {HandoffClass.__name__} optimizer...")
     optimizer = HandoffClass(
         task=task,
-        model=model,
+        model=runtime_model,
         results_dir=results_dir,
         debug=debug,
         task_prompt_path=task_prompt_path,
@@ -127,6 +197,7 @@ def run_handoff_optimization(
         enable_continue_message=enable_continue_message,
         early_stop_patience=early_stop_patience,
         run_baselines=not problem_name.startswith("fcs_"),
+        model_label=model_label,
     )
     print("Optimizer initialized!")
     print()
@@ -181,6 +252,30 @@ if __name__ == "__main__":
         action="store_true",
         help="Use no-KB ablation: AgenticHandoffNoKB (no knowledge base; experiments wiped on handoff)."
     )
+    parser.add_argument(
+        "--okg_context_file",
+        type=str,
+        default=None,
+        help="Rendered OKG context packet markdown to prepend to the benchmark task prompt."
+    )
+    parser.add_argument(
+        "--okg_context_metadata_file",
+        type=str,
+        default=None,
+        help="Optional JSON metadata for --okg_context_file."
+    )
+    parser.add_argument(
+        "--arm_name",
+        type=str,
+        default=None,
+        help="Optional benchmark arm label written to benchmark_run_config.json."
+    )
+    parser.add_argument(
+        "--comparison_type",
+        type=str,
+        default="engram_benchmark_arm",
+        help="Optional comparison-family label written to benchmark_run_config.json."
+    )
     args = parser.parse_args()
 
     try:
@@ -196,6 +291,10 @@ if __name__ == "__main__":
                 args.early_stop_patience,
                 args.enable_continue_message,
                 args.remove_kb,
+                args.okg_context_file,
+                args.okg_context_metadata_file,
+                args.arm_name,
+                args.comparison_type,
             )
     except Exception as e:
         print(f"Error: {e}")

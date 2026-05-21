@@ -29,6 +29,46 @@ from SystemBench.evaluator import Evaluator
 from Architect.types import DesignConfig, Scenario, CodeBlock, CodeBlockImplementation
 
 
+def _evaluate_program_worker(path: str, env_path: str, eval_file_name: str, queue: multiprocessing.Queue):
+    """Run an ADRS evaluator in a subprocess and return captured output."""
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
+
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
+    try:
+        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+            if eval_file_name:
+                evaluate_file = os.path.join(env_path, eval_file_name)
+            else:
+                evaluate_file = os.path.join(env_path, "evaluator.py")
+                if not os.path.exists(evaluate_file):
+                    evaluate_file = os.path.join(env_path, "evaluate.py")
+
+            module_name = os.path.splitext(os.path.basename(evaluate_file))[0]
+            spec = importlib.util.spec_from_file_location(module_name, evaluate_file)
+            evaluate_module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = evaluate_module
+            if env_path not in sys.path:
+                sys.path.insert(0, env_path)
+            spec.loader.exec_module(evaluate_module)
+
+            results = evaluate_module.evaluate(path)
+
+        results["stdout"] = stdout_buffer.getvalue()
+        results["stderr"] = stderr_buffer.getvalue()
+        queue.put(("success", results))
+    except Exception as e:
+        import traceback
+        error_data = {
+            "error": f"{str(e)}\n{traceback.format_exc()}",
+            "stdout": stdout_buffer.getvalue(),
+            "stderr": stderr_buffer.getvalue(),
+        }
+        queue.put(("error", error_data))
+
+
 class ADRSEvaluator(Evaluator):
     """
     Generic evaluator wrapper for ADRS simulation environments.
@@ -224,55 +264,14 @@ based on performance metrics and returns a combined score.
         # Create a queue to receive results from the subprocess
         result_queue = multiprocessing.Queue()
 
-        # Pass adrs_env_path and evaluator_file as arguments since nested functions can't access self in multiprocessing
         adrs_env_path = self.adrs_env_path
         evaluator_file_name = self.evaluator_file
 
-        def _evaluate_wrapper(path: str, env_path: str, eval_file_name: str, queue: multiprocessing.Queue):
-            """Wrapper function to run evaluation in subprocess."""
-            import io
-            from contextlib import redirect_stdout, redirect_stderr
-
-            # Capture stdout and stderr
-            stdout_buffer = io.StringIO()
-            stderr_buffer = io.StringIO()
-
-            try:
-                with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
-                    # Re-discover the evaluate function in the subprocess
-                    # (functions can't be pickled, so we need to re-import)
-                    if eval_file_name:
-                        evaluate_file = os.path.join(env_path, eval_file_name)
-                    else:
-                        evaluate_file = os.path.join(env_path, "evaluator.py")
-                        if not os.path.exists(evaluate_file):
-                            evaluate_file = os.path.join(env_path, "evaluate.py")
-
-                    module_name = os.path.splitext(os.path.basename(evaluate_file))[0]
-                    spec = importlib.util.spec_from_file_location(module_name, evaluate_file)
-                    evaluate_module = importlib.util.module_from_spec(spec)
-                    sys.modules[module_name] = evaluate_module
-                    if env_path not in sys.path:
-                        sys.path.insert(0, env_path)
-                    spec.loader.exec_module(evaluate_module)
-
-                    results = evaluate_module.evaluate(path)
-
-                # Add captured output to results
-                results["stdout"] = stdout_buffer.getvalue()
-                results["stderr"] = stderr_buffer.getvalue()
-                queue.put(("success", results))
-            except Exception as e:
-                import traceback
-                error_data = {
-                    "error": f"{str(e)}\n{traceback.format_exc()}",
-                    "stdout": stdout_buffer.getvalue(),
-                    "stderr": stderr_buffer.getvalue(),
-                }
-                queue.put(("error", error_data))
-
         # Start the evaluation in a separate process
-        process = multiprocessing.Process(target=_evaluate_wrapper, args=(program_path, adrs_env_path, evaluator_file_name, result_queue))
+        process = multiprocessing.Process(
+            target=_evaluate_program_worker,
+            args=(program_path, adrs_env_path, evaluator_file_name, result_queue),
+        )
         process.start()
 
         # Wait for the process to complete, with timeout

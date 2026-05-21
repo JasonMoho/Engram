@@ -1,9 +1,10 @@
-id: https://palimpzest.mit.edu/okg/deployments/memex_sr/base
-name: memex_sr_base
-title: "Memex-SR deployment base"
-description: >-
-  Deployment-owned ontology overlay for Memex-SR corpus governance,
-  literature identity, and acquisition manifests.
+id: https://palimpzest.mit.edu/okg/deployments/memex_sr/assets
+name: memex_sr_assets
+title: Memex-SR corpus asset overlay
+description: >
+  Deployment-owned subtypes that are still specific to the Memex-SR
+  paper-cut manifest. Core scholarly types such as Paper, Venue, and
+  Person come from upstream OKG modules.
 
 prefixes:
   linkml: https://w3id.org/linkml/
@@ -58,21 +59,6 @@ classes:
       okg_searchable_text_fields: name,short_name,text
       okg_alias_fields: name,short_name
 
-  Venue:
-    description: Conference or journal venue in the Memex-SR target matrix.
-    class_uri: memex_sr:Venue
-    attributes:
-      venue_id:
-        required: true
-      name:
-      short_name:
-      domain:
-    annotations:
-      archetype: concept
-      transient: 'false'
-      okg_searchable_text_fields: name,short_name,text
-      okg_alias_fields: name,short_name
-
   VenueEdition:
     description: Year-specific venue edition.
     class_uri: memex_sr:VenueEdition
@@ -87,25 +73,6 @@ classes:
       transient: 'false'
       okg_searchable_text_fields: name,venue_id,year,text
       okg_alias_fields: name
-
-  Paper:
-    description: Canonical paper metadata record for the systems researcher corpus.
-    class_uri: memex_sr:Paper
-    attributes:
-      paper_id:
-        required: true
-      title:
-      abstract:
-      year:
-      doi:
-      openalex_id:
-      venue_id:
-      venue_short_name:
-    annotations:
-      archetype: artifact
-      transient: 'false'
-      okg_searchable_text_fields: title,abstract,doi,openalex_id,text
-      okg_alias_fields: title,doi,openalex_id
 
   DocumentAsset:
     description: Acquisition manifest asset or URL hint for a paper/document.

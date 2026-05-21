@@ -68,6 +68,51 @@ The downloader should consume only `fetch_open` records. The parser
 should consume only `acquired_assets.jsonl` records whose local file,
 hash, access basis, and provenance are present.
 
+## Cloudcast Reviewed Source Slice
+
+The Cloudcast actionable-context work has a separate reviewed seed
+manifest:
+
+- `fixtures/cloudcast_sources.yaml`
+- `scripts/plan_cloudcast_acquisition.py`
+
+The manifest is intentionally broader than the current graph. It covers
+benchmark-local artifacts, direct systems comparators, algorithmic
+foundations, implementation/data-structure guidance, and cloud-pricing
+sources. Holdout artifacts such as `optimal.py` and
+`task_prompt_direction_with_optimal.txt` are listed only so the planner
+can prove they are excluded.
+
+Dry-run the Cloudcast acquisition plan without network access:
+
+```bash
+uv --project external/okg run \
+  python "$PWD/deployments/memex-sr/scripts/plan_cloudcast_acquisition.py" \
+    --out "$PWD/deployments/memex-sr/reports/cloudcast-ab/cloudcast-acquisition-plan.json" \
+    --markdown-output "$PWD/deployments/memex-sr/reports/cloudcast-ab/cloudcast-acquisition-plan.md"
+```
+
+The output records target files, cache paths, access basis, allowed
+action, and host rate policy. It is the handoff artifact for deciding
+which open sources can be fetched automatically and which MIT/manual
+items need operator retrieval.
+
+To diagnose whether an OKG-assisted run actually used graph evidence,
+run:
+
+```bash
+uv --project external/okg run \
+  python "$PWD/deployments/memex-sr/scripts/diagnose_cloudcast_okg_usage.py" \
+    --run-dir "$PWD/results/codex_okg_mcp_cloudcast/20260520T123410Z" \
+    --dsn postgres://postgres:okg@localhost:5433/engram_memex_sr_profile_smoke \
+    --output "$PWD/deployments/memex-sr/reports/cloudcast-ab/okg-usage-diagnostic.md" \
+    --json-output "$PWD/deployments/memex-sr/reports/cloudcast-ab/okg-usage-diagnostic.json"
+```
+
+That diagnostic classifies a run as `okg_attached_but_underused` when
+the MCP server was available but the agent did not cite Cloudcast
+evidence before coding or evaluation.
+
 ## Reuse From `af_pubs`
 
 The `af_pubs` deployment has the right implementation patterns for the
